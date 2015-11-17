@@ -115,7 +115,7 @@ class Variation:
 				rot180=np.matrix([[np.cos(a180),np.sin(a180)],[-np.sin(a180),np.cos(a180)]])
 				sel1=np.where(r<.5)[0]
 				resF[sel1,:]=np.dot(resF[sel1,:],rot180)
-				
+
 			elif self.rotation[i]==90:
 				a90=np.pi/2
 				rot90=np.matrix([[np.cos(a90),np.sin(a90)],[-np.sin(a90),np.cos(a90)]])
@@ -131,7 +131,6 @@ class Variation:
 			# 	rotloc=np.matrix([[np.cos(aloc),np.sin(aloc)],[-np.sin(aloc),np.cos(aloc)]])
 			# 	sel1=np.where(r<.5)[0]
 			# 	resF[sel1,:]=np.dot(resF[sel1,:],rotloc)
-				
 
 		return(resF)
 
@@ -208,8 +207,8 @@ class Fractale:
 	def toImagerec(self,ids=None,sizeImage=800):
 		imgtemp = Image.new( 'RGB', (sizeImage,sizeImage), "black")
 		bitmap = np.array(imgtemp)
-		intensity=np.zeros((sizeImage,sizeImage,3))        
-		
+		intensity=np.zeros((sizeImage,sizeImage,3))
+
 		F_loc=(sizeImage*(self.F+1)/2).astype("i2")
 		C_loc=self.C
 
@@ -240,7 +239,7 @@ class Fractale:
 							mask=np.where((mask0) & (mask1))[0]
 							affectrec(F_loc_loc[mask,:],C_loc_loc[mask,:],i,j,depth+1)
 
-		affectrec(F_loc[goods,:],C_loc[goods,:],np.arange(sizeImage+1),np.arange(sizeImage+1),0)				
+		affectrec(F_loc[goods,:],C_loc[goods,:],np.arange(sizeImage+1),np.arange(sizeImage+1),0)
 
 		nmax=np.amax(intensity)
 		print(nmax)
@@ -289,8 +288,8 @@ class Fractale:
 	def toImage(self,sizeImage=1200,coef=1):
 		imgtemp = Image.new( 'RGB', (sizeImage,sizeImage), "black")
 		bitmap = np.array(imgtemp)
-		intensity=np.zeros((sizeImage,sizeImage,3))        
-		
+		intensity=np.zeros((sizeImage,sizeImage,3))
+
 		F_loc=(sizeImage*(self.F+1)/2).astype("i2")
 		C_loc=self.C
 
