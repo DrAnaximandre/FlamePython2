@@ -17,9 +17,9 @@ The zoom parameter is just for convenience.
 
 ```
   v1=Variation()
-  v1.addFunction(.5,[0,1,0,0,0,1],'linear',.2,[255,0,0])
-  v1.addFunction(.5,[1,1,0,0,0,1],'linear',.2,[0,255,0])
-  v1.addFunction(.5,[0,1,0,1,0,1],'linear',.2,[0,0,255])
+  v1.addFunction([.5],[0,1,0,0,0,1],['linear'],.2,[255,0,0])
+  v1.addFunction([.5],[1,1,0,0,0,1],['linear'],.2,[0,255,0])
+  v1.addFunction([.5],[0,1,0,1,0,1],['linear'],.2,[0,0,255])
 ```
 
 Here we declare a variation with 3 functions. For instance this will give a Serpinski's triangle as the functions are:
