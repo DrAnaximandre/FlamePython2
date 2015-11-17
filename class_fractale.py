@@ -5,10 +5,18 @@ import sys
 import time
 
 class Function:
+	'''
+		Defines a function to be applied to the coordinates.
+
+		Parameters:
+			- ws the weights : it's a number that is applied to each parameters for each function (additives)
+			- params : a list of lenght 6. The 3 first are the coefficients for resp. a constant, x, and y to form the x of the vector that goes in the additives. Same for [3:6] that forms the y.
+			- additives: a list of functions in utils.py. So far are implemented: linear, swirl, spherical,expinj, pdj, bubble.
+	'''
 	def __init__(self,ws,params,additives):
-		self.ws=[ws]
+		self.ws=ws
 		self.params=params
-		self.additives=[additives]
+		self.additives=additives
 
 	def call(self,toto):
 		x_loc=np.dot(toto,self.params[0:3])
@@ -16,10 +24,17 @@ class Function:
 		tostr=''
 		for i in range(len(self.additives)):
 			tostr= tostr+'self.ws['+str(i)+']*'+self.additives[i]+'(x_loc,y_loc)'
+			if i!=len(self.additives)-1:
+				tostr=tostr+"+"
 		return(eval(tostr))
 
 
 class Variation:
+	'''
+		A variation is a set of several functions.
+
+		It takes no argument to build since they are all updated each time you add a function.
+	'''
 
 	def __init__(self):
 		self.Nfunctions=0
@@ -44,7 +59,7 @@ class Variation:
 			ws=np.random.uniform(-1,1,1)
 			self.functions.append(Function(ws,params,additives))
 		else:
-			print("This varaition is locked, I can't do anything")
+			print("This variation is locked, I can't do anything")
 
 
 	def addFunction(self,ws,params,additives,proba,col):
@@ -54,13 +69,13 @@ class Variation:
 			self.vproba.append(proba)
 			self.functions.append(Function(ws,params,additives))
 		else:
-			print("This varaition is locked, I can't do anything")
+			print("This variation is locked, I can't do anything")
 
 	def addFinal(self,ws,params,additives):
 		if not self.lockVariation:
 			self.final=Function(ws,params,additives)
 		else:
-			print("This varaition is locked, I can't do anything")
+			print("This variation is locked, I can't do anything")
 
 	def addRotation(self,angle):
 		if not self.lockVariation:
@@ -315,14 +330,15 @@ class Fractale:
 
 if __name__=='__main__':
 	N=50000
-	F1=Fractale(burn=10,niter=20,zoom=1)
+	F1=Fractale(burn=10,niter=30,zoom=1)
 	v1=Variation()
-	v1.addFunction(.9,[0,1,0,0,0,1],'linear',.2,[255,0,0])
-	v1.addFunction(.5,[1,1,0,0,0,1],'linear',.2,[0,255,0])
-	v1.addFunction(.5,[0,1,0,1,0,1],'linear',.2,[0,0,255])
-	v1.addFunction(.4,[-.3,1,1,-.4,.2,0],"spherical",.1,[255,255,255])
+	v1.addFunction([.9,.2,.3],[0,1,0,0,0,1],['linear','expinj','spherical'],.4,[255,0,0])
+	v1.addFunction([.5,.2],[1,1,0,1,0,1],['linear',"pdj"],.2,[0,255,0])
+	v1.addFunction([.5,.3],[0,1,0,1,0,1],['swirl',"swirl"],.1,[0,0,255])
+	v1.addFunction([.4,.2],[-.3,1,1,-.4,.2,0],["spherical","pdj"],.1,[255,255,255])
 	v1.addRotation(120)
-
+	# v1.addRotation(90)
+	# v1.addRotation(180)
 
 	F1.addVariation(v1,N)
 	F1.build()
