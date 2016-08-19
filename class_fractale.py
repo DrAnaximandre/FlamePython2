@@ -1,348 +1,360 @@
 from utils import *
 import numpy as np
-from PIL import Image,ImageFilter
+from PIL import Image, ImageFilter
 import sys
-import time
+
 
 class Function:
-	'''
-		Defines a function to be applied to the coordinates.
+    '''
+        Defines a function to be applied to the coordinates.
 
-		Parameters:
-			- ws the weights : it's a number that is applied to each parameters for each function (additives)
-			- params : a list of lenght 6. The 3 first are the coefficients for resp. a constant, x, and y to form the x of the vector that goes in the additives. Same for [3:6] that forms the y.
-			- additives: a list of functions in utils.py. So far are implemented: linear, swirl, spherical,expinj, pdj, bubble.
-	'''
-	def __init__(self,ws,params,additives):
-		self.ws=ws
-		self.params=params
-		self.additives=additives
+        Parameters:
+            - ws the weights : it's a list of weights that are applied
+                to each parameters for each function (additives).
+            - params : a list of lenght 6.
+                The 3 first are the coefficients for resp. a constant, x,
+                and y to form the x of the vector that goes in the additives.
+                  Same for [3:6] that forms the y.
+            - additives: a list of functions in utils.py.
+                So far are implemented: linear, swirl, spherical,
+                expinj, pdj, bubble.
+    '''
 
-	def call(self,toto):
-		x_loc=np.dot(toto,self.params[0:3])
-		y_loc=np.dot(toto,self.params[3:6])
-		tostr=''
-		for i in range(len(self.additives)):
-			tostr= tostr+'self.ws['+str(i)+']*'+self.additives[i]+'(x_loc,y_loc)'
-			if i!=len(self.additives)-1:
-				tostr=tostr+"+"
-		return(eval(tostr))
+    def __init__(self, ws, params, additives):
+
+        self.ws = ws
+        self.params = params
+        self.additives = additives
+
+    def call(self, points):
+        ''' Applies the function to a bunch of points.
+
+        Parameters:
+            - points is a np.array of size number of points x 3
+            technically the first column should be full of ones,
+            but it's not checked for performance.
+       '''
+        x_loc = np.dot(points, self.params[0:3])
+        y_loc = np.dot(points, self.params[3:6])
+        res = np.zeros((points.shape[0], 2))
+        for i in range(len(self.ws)):
+            res += self.ws[i] * self.additives[i](x_loc, y_loc)
+        return res
 
 
 class Variation:
-	'''
-		A variation is a set of several functions.
+    '''
+        A variation is a set of several functions.
 
-		It takes no argument to build since they are all updated each time you add a function.
-	'''
+        It takes no parameters to build since they are all
+        updated each time you add a function.
 
-	def __init__(self):
-		self.Nfunctions=0
-		self.functions=[]
-		self.vproba=[0]
-		self.cols=[]
-		self.lockVariation=False
-		self.rotation=[]
-		self.final=False
+        The basic life cycle of such an object is: init,
+        add some functions, then fixProba. The user should not
+        play with these objects, they are used in the Fractale class.
 
-	def addRandomFunction(self):
-		lis=['linear','swirl','spherical','expinj','bubble','pdj']
-		if not self.lockVariation:
-			self.Nfunctions+=1
-			col=np.random.randint(0,255,3)
-			self.cols.append(col)
-			proba=np.random.rand(1)
-			self.vproba.append(proba)
-			params=np.random.uniform(-1,1,(6,1))
-			r=np.random.randint(0,6,1)
-			additives=lis[r]
-			ws=np.random.uniform(-1,1,1)
-			self.functions.append(Function(ws,params,additives))
-		else:
-			print("This variation is locked, I can't do anything")
+        The variation may have a final function that is applied after the
+        regular functions.
+
+        The variation can also have rotations that are applied after all the
+        functions.
+
+        The Variation has an vproba attribute: before the fixProba, it's
+        the weight of each function in the Variation. After the fix, it's
+        the cumulative probability to have each of the functions.
+    '''
+
+    def __init__(self):
+        self.Nfunctions = 0  # the number of functions in the Variation
+        self.functions = []  # a list where the functions are stored
+        self.vproba = [0]  # a list of probabilities, see doc
+        self.cols = []  # a list of colors associated to each function
+        self.lockVariation = False  # a bool: can I still add functions?
+        self.rotation = []  # a list of rotations to be applied
+        self.final = False  # a bool: does the variation has a final function?
+
+    def addFunction(self, ws, params, additives, proba, col):
+        """ adds a function where the parameters are all provided
+            - ws, params, additives are parameters that go directely
+                in a new Function object
+            - proba is a number, the weight of the added function.
+                should not be negative.
+            - col is the color of the function,
+                it is a np array of shape (3,), that should range from 0 to 255
+
+        """
+        if proba < 0:
+            raise ValueError("no negative weights allowed")
+
+        if not self.lockVariation:
+            self.Nfunctions += 1
+            self.cols.append(col)
+            self.vproba.append(proba)
+            self.functions.append(Function(ws, params, additives))
+        else:
+            raise ValueError(
+                "This variation is locked, I cannot add the function")
+
+    def addRandomFunction(self, nattractors=3):
+        lis = [linear, swirl, spherical, expinj, bubble, pdj]
+        if not self.lockVariation:
+            self.Nfunctions += 1
+            col = np.random.randint(0, 255, 3)
+            self.cols.append(col)
+            proba = np.random.rand(1)
+            self.vproba.append(proba)
+            params = np.random.normal(0, 1, (6, 1))
+            r = np.random.randint(0, 6, 3)
+            additives = []
+            for i in r:
+                additives.append(lis[i])
+            ws = np.random.uniform(-1, 1, 1)
+            self.functions.append(Function(ws, params, additives))
+        else:
+            raise ValueError(
+                "This variation is locked, I cannot add the function")
+
+    def fixProba(self):
+        """ Utility function: scales the weights to a cumsum between 0 and 1.
+        """
+        self.vproba = [p / np.sum(self.vproba) for p in self.vproba]
+        self.vproba = np.cumsum(self.vproba)
+        # as a result, the last value of vproba is 1
+        self.lockVariation = True
+
+    def addFinal(self, ws, params, additives):
+        """ adds a final function to the Variation.
+            - ws, params, additives are parameters that go directely
+                in a new Function object
+        """
+        if not self.lockVariation:
+            self.final = Function(ws, params, additives)
+        else:
+            raise ValueError(
+                "This variation is locked, I cannot add the final")
+
+    def addRotation(self, angle):
+        """ adds a rotation to the variation.
+           so far only 3 angles are supported : 180, 120 and 90.
+        """
+        if not self.lockVariation:
+            self.rotation.append(angle)
+        else:
+            raise ValueError(
+                "This variation is locked, I cannot add the rotation")
+
+    def runAllfunctions(self, batchpointsF, batchpointsC):
+        """ Calls all the functions (including the final if it exists).
+
+            Parameters:
+
+            - batchpointsF: np.array of size Number of points x 3
+                it's a columns of ones and the coordinates of the points.
+            - batchpointsC: np.array of size Number of points x 3
+                it's the colors of the points so it
+                should scale between 0 and 255
 
 
-	def addFunction(self,ws,params,additives,proba,col):
-		if not self.lockVariation:
-			self.Nfunctions+=1
-			self.cols.append(col)
-			self.vproba.append(proba)
-			self.functions.append(Function(ws,params,additives))
-		else:
-			print("This variation is locked, I can't do anything")
+        """
+        Nloc = batchpointsF.shape[0]  # how many points in the batch
+        r = np.random.uniform(size=Nloc)  # each point is attributed a rand
+        resF = np.zeros(shape=(Nloc, 2))  # creation of the empty results
+        resC = np.zeros(shape=(Nloc, 3))
+        for i in range(len(self.vproba) - 1):  # for each regular function
+            # we select via a mask the points that are attributed a given
+            # function
+            mask1 = r > self.vproba[i]
+            mask2 = r < self.vproba[i + 1]
+            sel = np.where((mask1) & (mask2))[0]
+            # then we call the function on the slice. The whole process could
+            # be parallelized since we work on slices, but it's quite quick so
+            resF[sel, :] = self.functions[i].call(batchpointsF[sel, :])
+            # then we blend the color of the points with the color of the
+            # function by averaging them
+            colorbrew = np.ones(shape=(len(sel), 3)) * self.cols[i]
+            resC[sel, :] = (batchpointsC[sel, :] + colorbrew) / 2
 
-	def addFinal(self,ws,params,additives):
-		if not self.lockVariation:
-			self.final=Function(ws,params,additives)
-		else:
-			print("This variation is locked, I can't do anything")
+        if self.final:
+            # if the variation has a final function, it is applied on
+            # every point of resF.
+            # note that the final function has no color thus it does not modify
+            # resC.
+            onesfinal = np.ones(Nloc)
+            # As said in the Function.call doc, the first column of a
+            # batch of points should be full of ones for the call to work.
+            resF = self.final.call(np.column_stack((onesfinal, resF)))
+        else:
+            pass
+        return(resF, resC)
 
-	def addRotation(self,angle):
-		if not self.lockVariation:
-			if angle not in [180,120,90]:
-				print("Angle not implemented yet")
-			else:
-				self.rotation.append(angle)
-		else:
-			print("This varaition is locked, I can't do anything")
+    def runAllrotations(self, resF):
+        Nloc = resF.shape[0]
+        r = np.random.uniform(size=Nloc)
+        for i in range(len(self.rotation)):
+            if self.rotation[i] == 120:
+                a120 = np.pi * 2 / 3
+                resF = rotation(3, a120, resF, r)
 
+            elif self.rotation[i] == 180:
+                a180 = np.pi
+                resF = rotation(2, a180, resF, r)
 
-	def fixProba(self):
-		self.vproba=[p/np.sum(self.vproba) for p in self.vproba]
-		self.vproba=np.cumsum(self.vproba)
-		self.lockVariation=True
+            elif self.rotation[i] == 90:
+                a90 = np.pi / 2
+                resF = rotation(4, a90, resF, r)
 
-	def runAllfunctions(self,totoF,totoC):
-		Nloc=totoF.shape[0]
-		r=np.random.uniform(size=Nloc)
-		resF=np.zeros(shape=(Nloc,2))
-		resC=np.zeros(shape=(Nloc,3))
-		for i in range(len(self.vproba)-1):
-			masku1=r>self.vproba[i]
-			masku2=r<self.vproba[i+1]
-			sel=np.where((masku1) & (masku2))[0]
-			resF[sel,:]=self.functions[i].call(totoF[sel,:])
-			colorbrew=np.ones(shape=(len(sel),3))*self.cols[i]
-			resC[sel,:]=(totoC[sel,:]+colorbrew)/2
+            elif type(self.rotation[i]) == tuple:
+                ncustom = self.rotation[i][0]
+                acustom = float(self.rotation[i][1])
+                coef = float(self.rotation[i][2])
+                resF = rotation(ncustom, acustom, resF, r, coef)
+        return (resF)
 
-		if self.final:
-			onesfinal=np.ones(resF.shape[0])
-			totoF=np.column_stack((onesfinal,resF))
-			resF=self.final.call(totoF)
-		else:
-			pass
-		return(resF,resC)
-
-	def runAllrotations(self,resF):
-		Nloc=resF.shape[0]
-		r=np.random.uniform(size=Nloc)
-		for i in range(len(self.rotation)):
-			if self.rotation[i]==120:
-				a120=np.pi*2/3
-				rot120=np.matrix([[np.cos(a120),np.sin(a120)],[-np.sin(a120),np.cos(a120)]])
-				sel1=np.where(r<.33)[0]
-				sel2=np.where(r>.66)[0]
-				resF[sel1,:]=np.dot(resF[sel1,:],rot120)
-				resF[sel2,:]=np.dot(np.dot(resF[sel2,:],rot120),rot120)
-
-			elif self.rotation[i]==180:
-				a180=np.pi
-				rot180=np.matrix([[np.cos(a180),np.sin(a180)],[-np.sin(a180),np.cos(a180)]])
-				sel1=np.where(r<.5)[0]
-				resF[sel1,:]=np.dot(resF[sel1,:],rot180)
-
-			elif self.rotation[i]==90:
-				a90=np.pi/2
-				rot90=np.matrix([[np.cos(a90),np.sin(a90)],[-np.sin(a90),np.cos(a90)]])
-				sel=np.where(r<.25)[0]
-				resF[sel,:]=np.dot(resF[sel,:],rot90)
-				sel=np.where((r<.5) & (r>.25))[0]
-				resF[sel,:]=np.dot(np.dot(resF[sel,:],rot90),rot90)
-				sel=np.where((r<.75) & (r>.5))[0]
-				resF[sel,:]=np.dot(np.dot(np.dot(resF[sel,:],rot90),rot90),rot90)
-
-			# # else:
-			# 	aloc=self.rotation[i]*np.pi/180
-			# 	rotloc=np.matrix([[np.cos(aloc),np.sin(aloc)],[-np.sin(aloc),np.cos(aloc)]])
-			# 	sel1=np.where(r<.5)[0]
-			# 	resF[sel1,:]=np.dot(resF[sel1,:],rotloc)
-
-		return(resF)
 
 class Fractale:
 
-	def __init__(self,burn,niter,zoom=1):
-		self.zoom=zoom
-		self.variations=[]
-		self.Ns=[]
-		self.burn=burn
-		self.niter=niter
-		self.lockBuild=False
+    def __init__(self, burn, niter, zoom=1):
+        self.zoom = zoom
+        self.variations = []
+        self.Ns = []
+        # list that stores the number of points for each variation
+        self.burn = burn
+        self.niter = niter
+        self.lockBuild = False
 
-	def addVariation(self,var,N):
-		self.variations.append(var)
-		self.Ns.append(N)
+    def addVariation(self, var, N):
+        self.variations.append(var)
+        self.Ns.append(N)
 
-	def build(self):
-		'''
-			it is not advised to add variations after a build
+    def build(self):
+        '''
+            it is not advised to add variations after a build
 
-		'''
-		if not self.lockBuild:
-			totalSize=np.sum(self.Ns)*self.niter
-			self.F=np.random.uniform(-1,1,size=(totalSize,2))
-			self.C=np.ones(shape=(totalSize,3))*255
-			[v.fixProba() for v in self.variations]
-			self.lockBuild=True
+        '''
+        if not self.lockBuild:
+            totalSize = np.sum(self.Ns) * self.niter
+            self.F = np.random.uniform(-1, 1, size=(totalSize, 2))
+            self.C = np.ones(shape=(totalSize, 3)) * 255
+            [v.fixProba() for v in self.variations]
+            self.lockBuild = True
+            self.hmv = len(self.variations)
 
-		else:
-			print("You have already built this Fractale")
+        else:
+            print("You have already built this Fractale")
 
-	def run1iter(self,whichiter,burn):
-		sumNS=np.sum(self.Ns)
-		a=sumNS*whichiter
-		b=sumNS*(whichiter+1)
-		c=sumNS*(whichiter+2)
-		rangeIdsIN=np.arange(a,b)
-		if burn:
-			rangeIdsOUT=np.arange(a,b)
-		else:
-			rangeIdsOUT=np.arange(b,c)
+    def run1iter(self, whichiter, burn):
+        # safety check
+        if not self.lockBuild:
+            print("you are trying to run a Fractale not built")
+            sys.exit()
 
-		## safety check
-		if len(rangeIdsIN)!=sumNS:
-			print("the number of indices provided is different from the number of points in one image")
-			sys.exit()
+        sumNS = np.sum(self.Ns)
+        a = sumNS * whichiter
+        b = sumNS * (whichiter + 1)
+        c = sumNS * (whichiter + 2)
+        rangeIdsI = np.arange(a, b)
+        if burn:
+            rangeIdsO = np.arange(a, b)
+        else:
+            rangeIdsO = np.arange(b, c)
 
-		ones=np.ones(len(rangeIdsIN))
-		totoF=np.column_stack((ones,self.F[rangeIdsIN,:]))
-		totoC=self.C[rangeIdsIN,:]
+        # safety check
+        if len(rangeIdsI) != sumNS:
+            print("the number of indices provided is different" +
+                  "from the number of points in one image")
+            sys.exit()
 
-		for i in range(len(self.variations)):
-			if i==0:
-				idstoto=np.arange(self.Ns[0])
-			else:
-				idstoto=np.arange(sum(self.Ns[:i]),sum(self.Ns[:i])+self.Ns[i])
+        ones = np.ones(len(rangeIdsI))
+        totoF = np.column_stack((ones, self.F[rangeIdsI, :]))
+        totoC = self.C[rangeIdsI, :]
 
-			resloc,coloc=self.variations[i].runAllfunctions(totoF[idstoto,:],totoC[idstoto,:])
-			self.C[rangeIdsOUT[idstoto],:]=coloc
-			self.F[rangeIdsOUT[idstoto],:]=self.variations[i].runAllrotations(resloc)
+        for i in range(self.hmv):
+            snsi = sum(self.Ns[:i])
+            ids = np.arange(snsi, snsi + self.Ns[i])
 
+            resloc, coloc = self.variations[i].runAllfunctions(
+                totoF[ids, :], totoC[ids, :])
+            storageF = self.variations[i].runAllrotations(resloc)
+            self.F[rangeIdsO[ids], :] = storageF
+            self.C[rangeIdsO[ids], :] = coloc
 
-	def runAll(self):
-		sumNS=np.sum(self.Ns)
-		for i in np.arange(self.burn):
-			self.run1iter(0,True)
-		for i in np.arange(self.niter-1):
-			self.run1iter(i,False)
+    def runAll(self):
+        for i in np.arange(self.burn):
+            self.run1iter(0, True)
+        for i in np.arange(self.niter - 1):
+            self.run1iter(i, False)
+        self.F = self.F * self.zoom
 
-		self.F=self.F*self.zoom
+    def toImage(self,
+                sizeImage=1000,
+                coef_forget=1.,
+                coef_intensity=.25,
+                optional_kernel_filtering=True):
 
+        imgtemp = Image.new('RGB', (sizeImage, sizeImage), "black")
+        bitmap = np.array(imgtemp)
+        intensity = np.zeros((sizeImage, sizeImage, 3))
 
-	def toImagerec(self,ids=None,sizeImage=800):
-		imgtemp = Image.new( 'RGB', (sizeImage,sizeImage), "black")
-		bitmap = np.array(imgtemp)
-		intensity=np.zeros((sizeImage,sizeImage,3))
+        F_loc = (sizeImage * (self.F + 1) / 2).astype("i2")
 
-		F_loc=(sizeImage*(self.F+1)/2).astype("i2")
-		C_loc=self.C
+        conditions = np.zeros((F_loc.shape[0], 4), dtype='bool')
+        conditions[:, 0] = F_loc[:, 0] < sizeImage
+        conditions[:, 1] = F_loc[:, 0] > 0
+        conditions[:, 2] = F_loc[:, 1] < sizeImage
+        conditions[:, 3] = F_loc[:, 1] > 0
 
+        goods = np.where(np.all(conditions, 1))[0]
+        print("    number of points in the image: " + str(len(goods)))
 
-		goods=np.where((F_loc[:,0]<sizeImage) & (F_loc[:,0]>0) & (F_loc[:,1]<sizeImage) & ( F_loc[:,1]>0))[0]
-		print("         number of points in the image: "+str(len(goods)))
+        for i in goods:
+            ad0 = F_loc[i, 0]
+            ad1 = F_loc[i, 1]
+            sto = bitmap[ad0, ad1]
+            a = (self.C[i, :] * coef_forget + sto) / (coef_forget + 1)
+            bitmap[ad0, ad1] = a
+            intensity[ad0, ad1, :] += 1
+        print("    end loop bitmap and intensity")
 
-		def affectrec(F_loc_loc,C_loc_loc,rangei, rangej,depth):
-			if F_loc_loc.shape[0]<=2:
-				pass
-			else:
-				if len(rangei)<=2 and len(rangej)<=2:
-					N_loc=F_loc_loc.shape[0]
-					intensity[rangei[0],rangej[0]]=N_loc
-					nbiz=(np.arange(N_loc)+1)/(N_loc+1)
-					nbizbiz=np.rollaxis(np.tile(nbiz,(3,1)),1)
-					a=np.mean(C_loc_loc*nbizbiz,axis=0)
-					bitmap[rangei[0],rangej[0]]=a
-				else:
-					nri0=rangei[:int(len(rangei)/2+1)]
-					nri1=rangei[int(len(rangei)/2):]
-					nrj0=rangej[:int(len(rangej)/2+1)]
-					nrj1=rangej[int(len(rangej)/2):]
-					for i in [nri0,nri1]:
-						for j in [nrj0,nrj1]:
-							mask0=((F_loc_loc[:,0] >= i[0]) & (F_loc_loc[:,0] <= i[-1]))
-							mask1=((F_loc_loc[:,1] >= j[0]) & (F_loc_loc[:,1] <= j[-1]))
-							mask=np.where((mask0) & (mask1))[0]
-							affectrec(F_loc_loc[mask,:],C_loc_loc[mask,:],i,j,depth+1)
+        nmax = np.amax(intensity)
+        print("    nmax: " + str(nmax))
+        intensity = np.power(np.log(intensity + 1
+                                    ) / np.log(nmax + 1), coef_intensity)
+        bitmap = np.uint8(bitmap * intensity)
 
-		affectrec(F_loc[goods,:],C_loc[goods,:],np.arange(sizeImage+1),np.arange(sizeImage+1),0)
+        out = Image.fromarray(bitmap)
 
-		nmax=np.amax(intensity)
-		print(nmax)
-		intensity=np.sqrt(np.log(intensity+1)/np.log(nmax+1))
-		bitmap=np.uint8(bitmap*intensity)
-		out=Image.fromarray(bitmap)
-		print("starting Kernel smoothing")
-		# supsammpK=ImageFilter.Kernel((5,5),[1,1,1,1,1,1,4,8,4,1,3,8,15,8,3,1,4,8,4,1,1,1,3,1,1])
-		supsammpK=ImageFilter.Kernel((3,3),[1,3,1,3,4,3,1,3,1])
-		out=out.filter(supsammpK)
-		return(out)
+        # Kernel filtering part
+        if optional_kernel_filtering:
+            print("    starting Kernel smoothing")
+            kfilter = np.ones((3, 3)) * .4
+            kfilter[1, 1] = 2
+            supsammpK = ImageFilter.Kernel((3, 3), kfilter.flatten())
+            out = out.filter(supsammpK)
 
-
-	def toScore(self,sizeImage=1200,coef=1,p=6):
-		F_loc=(sizeImage*(self.F+1)/2).astype("i2")
-
-		goods=np.where((F_loc[:,0]<sizeImage) & (F_loc[:,0]>0) & (F_loc[:,1]<sizeImage) & ( F_loc[:,1]>0))[0]
-		print("         number of points in the image: "+str(len(goods)))
-
-		scoreOut=[]
-		scoreIn=[]
-		rangei=np.linspace(0,sizeImage,num=p)
-		rangej=rangei
-		for i in range(p-1):
-			for j in range(p-1):
-				locs=np.where((F_loc[goods,0]<rangei[i+1]) &
-				 	(F_loc[goods,0]>rangei[i]) &
-				  	(F_loc[goods,1]<rangej[j+1]) &
-				  	( F_loc[goods,1]>rangej[j]))[0]
-				scoreOut.append(len(locs))
-				rangeiloc=np.linspace(rangei[i],rangei[i+1],3)
-				rangejloc=np.linspace(rangej[j],rangej[j+1],3)
-				for k in range(2):
-					for l in range(2):
-						loc_loc=np.where((F_loc[goods,0]<rangeiloc[k+1]) &
-									 	(F_loc[goods,0]>rangeiloc[k]) &
-									  	(F_loc[goods,1]<rangejloc[l+1]) &
-									  	( F_loc[goods,1]>rangejloc[l]))[0]
-						scoreIn.append(len(loc_loc))
-
-		print(np.std(scoreOut))
-		print(np.std(scoreIn))
-		return(-np.std(scoreOut)+np.std(scoreIn))
+        return(out)
 
 
-	def toImage(self,sizeImage=1200,coef=1):
-		imgtemp = Image.new( 'RGB', (sizeImage,sizeImage), "black")
-		bitmap = np.array(imgtemp)
-		intensity=np.zeros((sizeImage,sizeImage,3))
+if __name__ == '__main__':
 
-		F_loc=(sizeImage*(self.F+1)/2).astype("i2")
-		C_loc=self.C
+    burn = 20
+    niter = 50
+    zoom = 1
+    N = 10000
 
+    a1 = np.array([0, 1, 0, 0, 0, 1])
+    a2 = np.array([1, 1, 0, 0, 0, 1])
+    a3 = np.array([0, 1, 0, 1, 0, 1])
 
-		goods=np.where((F_loc[:,0]<sizeImage) & (F_loc[:,0]>0) & (F_loc[:,1]<sizeImage) & ( F_loc[:,1]>0))[0]
-		print("         number of points in the image: "+str(len(goods)))
+    F1 = Fractale(burn, niter, zoom)
 
-		for i in goods:
-			a=(C_loc[i,:]*coef+bitmap[F_loc[i,0],F_loc[i,1]])/(coef+1)
-			bitmap[F_loc[i,0],F_loc[i,1]]=a
-			intensity[F_loc[i,0],F_loc[i,1],:]+=1
+    v1 = Variation()
+    v1.addFunction([.5], a1, [linear], .2, [255, 0, 0])
+    v1.addFunction([.5], a2, [linear], .2, [0, 255, 0])
+    v1.addFunction([.5], a3, [linear], .2, [0, 0, 255])
 
-		nmax=np.amax(intensity)
-		print(nmax)
-		intensity=np.power(np.log(intensity+1)/np.log(nmax+1),.2)
-		bitmap=np.uint8(bitmap*intensity)
-		out=Image.fromarray(bitmap)
-		print("starting Kernel smoothing")
-		supsammpK=ImageFilter.Kernel((3,3),[1,3,1,3,5,3,1,3,1])
-		out=out.filter(supsammpK)
-		return(out)
-
-
-if __name__=='__main__':
-	N=50000
-	F1=Fractale(burn=10,niter=30,zoom=1)
-	v1=Variation()
-	v1.addFunction([.9,.2,.3],[0,1,0,0,0,1],['linear','expinj','spherical'],.4,[255,0,0])
-	v1.addFunction([.5,.2],[1,1,0,1,0,1],['linear',"pdj"],.2,[0,255,0])
-	v1.addFunction([.5,.3],[0,1,0,1,0,1],['swirl',"swirl"],.1,[0,0,255])
-	v1.addFunction([.4,.2],[-.3,1,1,-.4,.2,0],["spherical","pdj"],.1,[255,255,255])
-	v1.addRotation(120)
-	# v1.addRotation(90)
-	# v1.addRotation(180)
-
-	F1.addVariation(v1,N)
-	F1.build()
-	F1.runAll()
-	print("goto image")
-	out=F1.toImage()
-	out.save("figure.png")
+    F1.addVariation(v1, N)
+    F1.build()
+    F1.runAll()
+    print("Generating the image")
+    out = F1.toImage(1000)
+    out.save("serp.png")
