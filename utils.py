@@ -1,12 +1,5 @@
 import numpy as np
-
-
-def rescale255(tuple_bm3, rha):
-    # Ugly. will fix that later.
-    a = int(tuple_bm3[0] * rha)
-    b = int(tuple_bm3[1] * rha)
-    c = int(tuple_bm3[2] * rha)
-    return (a, b, c)
+from numba import jit
 
 
 def linear(x, y):
@@ -14,13 +7,13 @@ def linear(x, y):
 
 
 def swirl(x, y):
-    r = 1 + np.sqrt(x * x + y * y)
+    r = 3 + np.sqrt(x * x + y * y)
     return(np.column_stack((x * np.sin(r * r) - y * np.cos(r * r),
                             x * np.cos(r * r) + y * np.sin(r * r))))
 
 
 def spherical(x, y):
-    omega = np.arctan((x + 10) / (y + 10))
+    omega = np.arctan((x + 1) / (y + 1))
     r = np.sqrt(x * x + y * y)
     return(np.column_stack((np.sin(np.pi * r) * omega / np.pi,
                             np.cos(np.pi * r) * omega / np.pi)))
@@ -44,7 +37,7 @@ def bubble(x, y):
     return(np.column_stack((coef * x, coef * y)))
 
 
-def rotation(ncuts, angle, resF, r, coef = 1):
+def rotation(ncuts, angle, resF, r, coef=1):
     """ Util function to apply a rotation several times.
 
     Parameters :
@@ -66,3 +59,15 @@ def rotation(ncuts, angle, resF, r, coef = 1):
         resF[sel, :] = coef * np.dot(resF[sel, :], rot)
     return(resF)
 
+
+@jit
+def renderImage(F_loc, C, bitmap, intensity, goods, coef_forget):
+    for i in goods:
+        ad0 = F_loc[i, 0]
+        ad1 = F_loc[i, 1]
+        sto = bitmap[ad0, ad1]
+        a = (C[i, :] * coef_forget + sto) / (coef_forget + 1)
+        bitmap[ad0, ad1] = a
+        intensity[ad0, ad1, :] += 1
+    print("    end loop bitmap and intensity")
+    return bitmap, intensity

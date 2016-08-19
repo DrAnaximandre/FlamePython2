@@ -154,7 +154,6 @@ class Variation:
                 it's the colors of the points so it
                 should scale between 0 and 255
 
-
         """
         Nloc = batchpointsF.shape[0]  # how many points in the batch
         r = np.random.uniform(size=Nloc)  # each point is attributed a rand
@@ -254,7 +253,7 @@ class Fractale:
         c = sumNS * (whichiter + 2)
         rangeIdsI = np.arange(a, b)
         if burn:
-            rangeIdsO = np.arange(a, b)
+            rangeIdsO = rangeIdsI
         else:
             rangeIdsO = np.arange(b, c)
 
@@ -306,14 +305,8 @@ class Fractale:
         goods = np.where(np.all(conditions, 1))[0]
         print("    number of points in the image: " + str(len(goods)))
 
-        for i in goods:
-            ad0 = F_loc[i, 0]
-            ad1 = F_loc[i, 1]
-            sto = bitmap[ad0, ad1]
-            a = (self.C[i, :] * coef_forget + sto) / (coef_forget + 1)
-            bitmap[ad0, ad1] = a
-            intensity[ad0, ad1, :] += 1
-        print("    end loop bitmap and intensity")
+        bitmap, intensity = renderImage(F_loc, self.C, bitmap,
+                                        intensity, goods, coef_forget)
 
         nmax = np.amax(intensity)
         print("    nmax: " + str(nmax))
@@ -326,9 +319,10 @@ class Fractale:
         # Kernel filtering part
         if optional_kernel_filtering:
             print("    starting Kernel smoothing")
-            kfilter = np.ones((3, 3)) * .4
-            kfilter[1, 1] = 2
-            supsammpK = ImageFilter.Kernel((3, 3), kfilter.flatten())
+            kfilter = np.ones((5, 5)) * .4
+            kfilter[1:4, 1:4] = 1
+            kfilter[2, 2] = 5
+            supsammpK = ImageFilter.Kernel((5, 5), kfilter.flatten())
             out = out.filter(supsammpK)
 
         return(out)
@@ -336,25 +330,58 @@ class Fractale:
 
 if __name__ == '__main__':
 
-    burn = 20
-    niter = 50
-    zoom = 1
-    N = 10000
+    def make_serp():
+        burn = 20
+        niter = 50
+        zoom = 1
+        N = 10000
 
-    a1 = np.array([0, 1, 0, 0, 0, 1])
-    a2 = np.array([1, 1, 0, 0, 0, 1])
-    a3 = np.array([0, 1, 0, 1, 0, 1])
+        a1 = np.array([0, 1, 0, 0, 0, 1])
+        a2 = np.array([1, 1, 0, 0, 0, 1])
+        a3 = np.array([0, 1, 0, 1, 0, 1])
 
-    F1 = Fractale(burn, niter, zoom)
+        F1 = Fractale(burn, niter, zoom)
 
-    v1 = Variation()
-    v1.addFunction([.5], a1, [linear], .2, [255, 0, 0])
-    v1.addFunction([.5], a2, [linear], .2, [0, 255, 0])
-    v1.addFunction([.5], a3, [linear], .2, [0, 0, 255])
+        v1 = Variation()
+        v1.addFunction([.5], a1, [linear], .2, [255, 0, 0])
+        v1.addFunction([.5], a2, [linear], .2, [0, 255, 0])
+        v1.addFunction([.5], a3, [linear], .2, [0, 0, 255])
 
-    F1.addVariation(v1, N)
-    F1.build()
-    F1.runAll()
-    print("Generating the image")
-    out = F1.toImage(1000)
-    out.save("serp.png")
+        F1.addVariation(v1, N)
+        F1.build()
+        F1.runAll()
+        print("Generating the image")
+        out = F1.toImage(1000)
+        out.save("serp.png")
+
+    def make_mess():
+        burn = 20
+        niter = 100
+        zoom = 2
+        N = 50000
+
+        a1 = np.array([0, 1, 0, 0, 0, 1])
+        a2 = np.array([1, 1, 0, 0, 0, 1])
+        a3 = np.array([0, 1, 0, 1, 0, 1])
+
+        F1 = Fractale(burn, niter, zoom)
+
+        v1 = Variation()
+        v1.addFunction([.5, -.2, .4], a1,
+                       [linear, expinj, bubble], .2, [255, 0, 0])
+        v1.addFunction([.5, -.2, .4], a2,
+                       [linear, swirl, bubble], .2, [0, 255, 0])
+        v1.addFunction([.5, -.2, .4], a3,
+                       [linear, pdj, bubble], .2, [0, 0, 255])
+        v1.addFinal([.4, .3, .1], a1, [linear, swirl, bubble])
+        v1.addRotation((3, 1, .9))
+
+        F1.addVariation(v1, N)
+
+        F1.build()
+        F1.runAll()
+        print("Generating the image")
+        out = F1.toImage(4000, coef_forget=10, coef_intensity=.22)
+        out.save("mess.png")
+
+    make_mess()
