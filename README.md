@@ -33,13 +33,7 @@ v1.addFunction([.5], a3, [linear], .2, [0, 0, 255])
 
 ```
 
-Here we declare a variation with 3 functions. For instance this will give a Serpinski's triangle as the functions are:
-
-$F_0(x,y)=(x/2,y/2)$
-
-$F_1(x,y)=((x+1)/2,y/2)$
-
-$F_2(x,y)=(x/2,(y+1)/2)$
+Here we declare a variation with 3 functions. For instance this will give a Serpinski's triangle.
 
 Each function has a different color. They also have the same probability to appear (the probs are normalised to sum to one).
 
