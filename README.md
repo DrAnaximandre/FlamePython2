@@ -1,7 +1,6 @@
 # FlamePython2
 
 <center> <img src="mess.png"></center>
-(this image is 5000*5000 and has been generated in 15s thanks to numba/jit)
 
 Second version of the Flame Fractals in Python - inspired by Draves and Reckase (http://flam3.com/flame_draves.pdf)
 

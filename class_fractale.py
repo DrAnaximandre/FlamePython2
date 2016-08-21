@@ -356,9 +356,9 @@ if __name__ == '__main__':
 
     def make_mess():
         burn = 20
-        niter = 100
+        niter = 50
         zoom = 2
-        N = 50000
+        N = 20000
 
         a1 = np.array([0, 1, 0, 0, 0, 1])
         a2 = np.array([1, 1, 0, 0, 0, 1])
@@ -381,7 +381,7 @@ if __name__ == '__main__':
         F1.build()
         F1.runAll()
         print("Generating the image")
-        out = F1.toImage(4000, coef_forget=10, coef_intensity=.22)
+        out = F1.toImage(1500, coef_forget=.5, coef_intensity=.05)
         out.save("mess.png")
 
     make_mess()
