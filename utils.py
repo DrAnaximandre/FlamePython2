@@ -62,6 +62,8 @@ def rotation(ncuts, angle, resF, r, coef=1):
 
 @jit
 def renderImage(F_loc, C, bitmap, intensity, goods, coef_forget):
+    ''' this renders the image with a jit compilation
+    '''
     for i in goods:
         ad0 = F_loc[i, 0]
         ad1 = F_loc[i, 1]
