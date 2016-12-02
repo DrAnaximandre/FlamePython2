@@ -7,13 +7,37 @@ def linear(x, y):
 
 
 def swirl(x, y):
-    r = 3 + np.sqrt(x * x + y * y)
+    r = np.sqrt(x * x + y * y)
     return(np.column_stack((x * np.sin(r * r) - y * np.cos(r * r),
                             x * np.cos(r * r) + y * np.sin(r * r))))
 
 
+def Rswirl(x, y):
+    r = np.random.rand() + np.sqrt(x * x + y * y)
+    return(np.column_stack((x * np.sin(r * r) - y * np.cos(r * r),
+                            x * np.cos(r * r) + y * np.sin(r * r))))
+
+
+def sinmoche(x, y):
+    return (np.column_stack((np.sin(y - x), np.sin(x + y))))
+
+
+def Rsinmoche(x, y):
+    return (np.column_stack((np.sin(y - x + np.random.rand()),
+                             np.sin(x + y + np.random.rand()))))
+
+
 def spherical(x, y):
-    omega = np.arctan((x + 1) / (y + 1))
+    r = 0.001
+    omega = np.arctan((x + r) / (y + r))
+    r = np.sqrt(x * x + y * y)
+    return(np.column_stack((np.sin(np.pi * r) * omega / np.pi,
+                            np.cos(np.pi * r) * omega / np.pi)))
+
+
+def Rspherical(x, y):
+    r = np.random.rand()
+    omega = np.arctan((x + r) / (y + r))
     r = np.sqrt(x * x + y * y)
     return(np.column_stack((np.sin(np.pi * r) * omega / np.pi,
                             np.cos(np.pi * r) * omega / np.pi)))
@@ -25,6 +49,18 @@ def expinj(x, y):
     return(np.column_stack((xx, yy)))
 
 
+def Rexpinj(x, y):
+    xx = np.exp(-x * x - np.random.rand())
+    yy = np.exp(-y * y - np.random.rand())
+    return(np.column_stack((xx, yy)))
+
+
+def test(x, y):
+    xx = np.power(np.abs(np.sin(y)), .01)
+    yy = np.power(np.abs(np.sin(x)), .002)
+    return(np.column_stack((xx, yy)))
+
+
 def pdj(x, y, p1=.7, p2=3.14, p3=.7, p4=.2):
     xx = np.sin(p1 * y) - np.cos(p2 * x)
     yy = np.sin(p3 * x) - np.cos(p4 * y)
@@ -33,7 +69,13 @@ def pdj(x, y, p1=.7, p2=3.14, p3=.7, p4=.2):
 
 def bubble(x, y):
     r = np.sqrt(x * x + y * y)
-    coef = 4 / (r * r + 4)
+    coef = 1 / (r * r + .002)
+    return(np.column_stack((coef * x, coef * y)))
+
+
+def Rbubble(x, y):
+    r = np.sqrt(x * x + y * y)
+    coef = 1 / (r * r + np.random.rand())
     return(np.column_stack((coef * x, coef * y)))
 
 

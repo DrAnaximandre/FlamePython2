@@ -284,6 +284,24 @@ class Fractale:
             self.run1iter(i, False)
         self.F = self.F * self.zoom
 
+    def toScore(self, divs=4):
+        print("Scoring ... ")
+        conditions = np.zeros((self.F.shape[0], 4), dtype='bool')
+        conditions[:, 0] = self.F[:, 0] < 1
+        conditions[:, 1] = self.F[:, 0] > -1
+        conditions[:, 2] = self.F[:, 1] < 1
+        conditions[:, 3] = self.F[:, 1] > -1
+        goods = np.where(np.all(conditions, 1))[0]
+        hscore = depthcut(self.F[goods], 1, -1, -1, 1, 0, divs, [], "start")
+        res = ""
+        for i in range(divs):
+            datlevel = [score[0]
+                        for score in hscore if score[1] == i]
+            datstring = [str(i) for i in datlevel]
+            res += ";".join(datstring)
+            res += ";"
+        return(res)
+
     def toImage(self,
                 sizeImage=1000,
                 coef_forget=1.,
@@ -318,11 +336,12 @@ class Fractale:
 
         # Kernel filtering part
         if optional_kernel_filtering:
-            print("    starting Kernel smoothing")
-            kfilter = np.ones((5, 5)) * .4
-            kfilter[1:4, 1:4] = 1
-            kfilter[2, 2] = 5
-            supsammpK = ImageFilter.Kernel((5, 5), kfilter.flatten())
+            # print("    starting Kernel smoothing")
+            kfilter = np.ones((3, 3))
+            #kfilter[1:4, 1:4] = 2
+            #kfilter[2, 2] = 3
+            kfilter[1, 1] = 2
+            supsammpK = ImageFilter.Kernel((3, 3), kfilter.flatten())
             out = out.filter(supsammpK)
 
         return(out)
@@ -331,6 +350,7 @@ class Fractale:
 if __name__ == '__main__':
 
     def make_serp():
+        print("init serp triangle")
         burn = 20
         niter = 50
         zoom = 1
@@ -349,39 +369,51 @@ if __name__ == '__main__':
 
         F1.addVariation(v1, N)
         F1.build()
+        print("Running")
         F1.runAll()
         print("Generating the image")
-        out = F1.toImage(1000)
+        out = F1.toImage(600, coef_forget=.1, optional_kernel_filtering=False)
         out.save("serp.png")
 
     def make_mess():
-        burn = 20
-        niter = 50
-        zoom = 2
+        print("init mess")
+        burn = 50
+        niter = 100
+        zoom = .45
         N = 20000
+        colors = [[70, 119, 125],
+                  [96, 20, 220],
+                  [0, 0, 150],
+                  [82, 171, 165],
+                  [28, 43, 161]]
 
-        a1 = np.array([0, 1, 0, 0, 0, 1])
-        a2 = np.array([1, 1, 0, 0, 0, 1])
-        a3 = np.array([0, 1, 0, 1, 0, 1])
+        NFunc = 30
+        a = np.zeros((NFunc, 6))
+        for i in range(NFunc):
+            a[i, [((i + 1) * 2) % 6,
+                  (i * 3 + 2) % 6,
+                  (i * 4 + 3) % 6]] = 1
 
         F1 = Fractale(burn, niter, zoom)
 
         v1 = Variation()
-        v1.addFunction([.5, -.2, .4], a1,
-                       [linear, expinj, bubble], .2, [255, 0, 0])
-        v1.addFunction([.5, -.2, .4], a2,
-                       [linear, swirl, bubble], .2, [0, 255, 0])
-        v1.addFunction([.5, -.2, .4], a3,
-                       [linear, pdj, bubble], .2, [0, 0, 255])
-        v1.addFinal([.4, .3, .1], a1, [linear, swirl, bubble])
-        v1.addRotation((3, 1, .9))
+        for i in range(NFunc):
+            v1.addFunction([.8**(i + 1), (i + 1) * .2], a[i],
+                           [linear, bubble], .2, colors[i % 5])
+
+        v1.addRotation((8, np.pi / 4, 1))
 
         F1.addVariation(v1, N)
 
         F1.build()
+        print("Running")
         F1.runAll()
         print("Generating the image")
-        out = F1.toImage(1500, coef_forget=.5, coef_intensity=.05)
+        out = F1.toImage(600,
+                         coef_forget=.1,
+                         coef_intensity=.02,
+                         optional_kernel_filtering=True)
         out.save("mess.png")
 
+    make_serp()
     make_mess()

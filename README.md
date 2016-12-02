@@ -51,7 +51,7 @@ F1.runAll()
 This is pretty fast. The coslty part is to go from the coordinate space to the image space:
 ```
 print("Generating the image")
-out = F1.toImage(1000)
+out = F1.toImage(600, optional_kernel_filtering=False)
    
 ```
 
