@@ -4,3 +4,4 @@
 *.lprof
 __pycache__/
 save
+.ipynb_checkpoints
