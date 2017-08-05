@@ -1,6 +1,6 @@
 # FlamePython2
 
-<center> <img src="mess.png"></center>
+<p align="center"> <img src="mess.png"></p>
 
 Second version of the Flame Fractals in Python - inspired by Draves and Reckase (http://flam3.com/flame_draves.pdf)
 
@@ -63,5 +63,5 @@ out.save("serp.png")
 
 Taddaaa!
 
-![serp](Serp.png)
+<p align="center"> <img src="Serp.png"></p>
 
