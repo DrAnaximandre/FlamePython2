@@ -22,6 +22,11 @@ def sinmoche(x, y):
     return (np.column_stack((np.sin(y - x), np.sin(x + y))))
 
 
+def sinmoche2(x, y):
+    return (np.column_stack((np.sin(x*np.pi), 
+                            np.sin(y*np.pi))))
+
+
 def Rsinmoche(x, y):
     return (np.column_stack((np.sin(y - x + np.random.rand()),
                              np.sin(x + y + np.random.rand()))))
@@ -55,11 +60,6 @@ def Rexpinj(x, y):
     return(np.column_stack((xx, yy)))
 
 
-def test(x, y):
-    xx = np.power(np.abs(np.sin(y)), .01)
-    yy = np.power(np.abs(np.sin(x)), .002)
-    return(np.column_stack((xx, yy)))
-
 
 def pdj(x, y, p1=.7, p2=3.14, p3=.7, p4=.2):
     xx = np.sin(p1 * y) - np.cos(p2 * x)
@@ -71,6 +71,18 @@ def bubble(x, y):
     r = np.sqrt(x * x + y * y)
     coef = 1 / (r * r + .002)
     return(np.column_stack((coef * x, coef * y)))
+
+def test(x, y):
+    try:
+        
+        x[x>5] = 5
+        ee = np.exp (x)-.7
+        xx = ee*np.cos (3.15*y)
+        yy = ee*np.sin (3.14*y)
+
+    except:
+        print(x)
+    return(np.column_stack((xx, yy)))
 
 
 def Rbubble(x, y):
@@ -113,5 +125,5 @@ def renderImage(F_loc, C, bitmap, intensity, goods, coef_forget):
         a = (C[i, :] * coef_forget + sto) / (coef_forget + 1)
         bitmap[ad0, ad1] = a
         intensity[ad0, ad1, :] += 1
-    print("    end loop bitmap and intensity")
+    #print("    end loop bitmap and intensity")
     return bitmap, intensity

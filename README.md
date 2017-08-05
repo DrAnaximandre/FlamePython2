@@ -9,6 +9,7 @@ I tried to make it easy to add Functions and Variations to the Fractales.
 ### UserGuide Example
 
 ```
+import class_fractale.py
 burn = 20
 niter = 50
 zoom = 1

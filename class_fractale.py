@@ -34,8 +34,8 @@ class Function:
             technically the first column should be full of ones,
             but it's not checked for performance.
        '''
-        x_loc = np.dot(points, self.params[0:3])
-        y_loc = np.dot(points, self.params[3:6])
+        x_loc = np.dot(points, self.params[:3])
+        y_loc = np.dot(points, self.params[3:])
         res = np.zeros((points.shape[0], 2))
         for i in range(len(self.ws)):
             res += self.ws[i] * self.additives[i](x_loc, y_loc)
@@ -95,25 +95,6 @@ class Variation:
             raise ValueError(
                 "This variation is locked, I cannot add the function")
 
-    def addRandomFunction(self, nattractors=3):
-        lis = [linear, swirl, spherical, expinj, bubble, pdj]
-        if not self.lockVariation:
-            self.Nfunctions += 1
-            col = np.random.randint(0, 255, 3)
-            self.cols.append(col)
-            proba = np.random.rand(1)
-            self.vproba.append(proba)
-            params = np.random.normal(0, 1, (6, 1))
-            r = np.random.randint(0, 6, 3)
-            additives = []
-            for i in r:
-                additives.append(lis[i])
-            ws = np.random.uniform(-1, 1, 1)
-            self.functions.append(Function(ws, params, additives))
-        else:
-            raise ValueError(
-                "This variation is locked, I cannot add the function")
-
     def fixProba(self):
         """ Utility function: scales the weights to a cumsum between 0 and 1.
         """
@@ -159,6 +140,7 @@ class Variation:
         r = np.random.uniform(size=Nloc)  # each point is attributed a rand
         resF = np.zeros(shape=(Nloc, 2))  # creation of the empty results
         resC = np.zeros(shape=(Nloc, 3))
+
         for i in range(len(self.vproba) - 1):  # for each regular function
             # we select via a mask the points that are attributed a given
             # function
@@ -170,8 +152,8 @@ class Variation:
             resF[sel, :] = self.functions[i].call(batchpointsF[sel, :])
             # then we blend the color of the points with the color of the
             # function by averaging them
-            colorbrew = np.ones(shape=(len(sel), 3)) * self.cols[i]
-            resC[sel, :] = (batchpointsC[sel, :] + colorbrew) / 2
+            #colorbrew = np.ones(shape=(len(sel), 3)) * self.cols[i]
+            resC[sel, :] = batchpointsC[sel, :] + self.cols[i]
 
         if self.final:
             # if the variation has a final function, it is applied on
@@ -277,6 +259,8 @@ class Fractale:
             self.F[rangeIdsO[ids], :] = storageF
             self.C[rangeIdsO[ids], :] = coloc
 
+        self.C[rangeIdsO, :] /= 2
+
     def runAll(self):
         for i in np.arange(self.burn):
             self.run1iter(0, True)
@@ -306,7 +290,8 @@ class Fractale:
                 sizeImage=1000,
                 coef_forget=1.,
                 coef_intensity=.25,
-                optional_kernel_filtering=True):
+                optional_kernel_filtering=True,
+                verbose=0):
 
         imgtemp = Image.new('RGB', (sizeImage, sizeImage), "black")
         bitmap = np.array(imgtemp)
@@ -321,15 +306,18 @@ class Fractale:
         conditions[:, 3] = F_loc[:, 1] > 0
 
         goods = np.where(np.all(conditions, 1))[0]
-        print("    number of points in the image: " + str(len(goods)))
+        if verbose > 0:
+            print("    number of points in the image: " + str(len(goods)))
 
         bitmap, intensity = renderImage(F_loc, self.C, bitmap,
                                         intensity, goods, coef_forget)
 
         nmax = np.amax(intensity)
-        print("    nmax: " + str(nmax))
+        if verbose > 0:
+            print("    nmax: " + str(nmax))
         intensity = np.power(np.log(intensity + 1
                                     ) / np.log(nmax + 1), coef_intensity)
+
         bitmap = np.uint8(bitmap * intensity)
 
         out = Image.fromarray(bitmap)

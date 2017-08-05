@@ -1,2 +1,6 @@
 *.pyc
+*.png
+*.gif
+*.lprof
 __pycache__/
+save
