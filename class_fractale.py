@@ -152,7 +152,7 @@ class Variation:
             resF[sel, :] = self.functions[i].call(batchpointsF[sel, :])
             # then we blend the color of the points with the color of the
             # function by averaging them
-            #colorbrew = np.ones(shape=(len(sel), 3)) * self.cols[i]
+            # colorbrew = np.ones(shape=(len(sel), 3)) * self.cols[i]
             resC[sel, :] = batchpointsC[sel, :] + self.cols[i]
 
         if self.final:
