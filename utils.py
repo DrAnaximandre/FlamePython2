@@ -1,5 +1,5 @@
 import numpy as np
-from numba import jit
+# from numba import jit
 
 
 def linear(x, y):
@@ -114,7 +114,7 @@ def rotation(ncuts, angle, resF, r, coef=1):
     return(resF)
 
 
-@jit
+# @jit
 def renderImage(F_loc, C, bitmap, intensity, goods, coef_forget):
     ''' this renders the image with a jit compilation
     '''
