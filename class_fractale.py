@@ -2,7 +2,7 @@ from utils import *
 import numpy as np
 from PIL import Image, ImageFilter
 import sys
-
+import matplotlib.pyplot as plt
 
 class Function:
     '''
@@ -132,8 +132,8 @@ class Variation:
             - coordinates: np.array of size Number of points x 3
                 it's a columns of ones and the coordinates of the points.
             - batchpointsC: np.array of size Number of points x 3
-                it's the colors of the points so it
-                should scale between 0 and 255
+                it's the colors of the points.
+                it should scale between 0 and 255
 
         """
         Nloc = coordinates.shape[0]  # how many points in the batch
@@ -148,11 +148,10 @@ class Variation:
             mask2 = r < self.vproba[i + 1]
             sel = np.where((mask1) & (mask2))[0]
             # then we call the function on the slice. The whole process could
-            # be parallelized since we work on slices, but it's quite quick so
+            # be parallelized since we work on slices, but it's quite quick
             resF[sel, :] = self.functions[i].call(coordinates[sel, :])
             # then we blend the color of the points with the color of the
             # function by averaging them
-            # colorbrew = np.ones(shape=(len(sel), 3)) * self.cols[i]
             resC[sel, :] = batchpointsC[sel, :] + self.cols[i]
 
         if self.final:
@@ -332,76 +331,67 @@ class Fractale:
             supsammpK = ImageFilter.Kernel((3, 3), kfilter.flatten())
             out = out.filter(supsammpK)
 
-        return(out)
+        return(out, bitmap)
 
 
 if __name__ == '__main__':
 
-    def make_serp():
-        print("init serp triangle")
-        burn = 20
-        niter = 50
-        zoom = 1
-        N = 10000
+    burn = 0
+    niter = 25
+    zoom = 1
+    N = 5000
+    end = False
+    ci = 0.5
+    fi = 1
+    colors = [[250, 0, 0],
+              [250, 250, 0],
+              [0, 250, 0],
+              [0, 0, 250],
+              [28, 75, 250]]
 
-        a1 = np.array([0, 1, 0, 0, 0, 1])
-        a2 = np.array([1, 1, 0, 0, 0, 1])
-        a3 = np.array([0, 1, 0, 1, 0, 1])
+    A = np.array(np.random.normal(0,2/np.sqrt(6),(6,5)))
+
+
+    while not end:
 
         F1 = Fractale(burn, niter, zoom)
-
         v1 = Variation()
-        v1.addFunction([.5], a1, [linear], .2, [255, 0, 0])
-        v1.addFunction([.5], a2, [linear], .2, [0, 255, 0])
-        v1.addFunction([.5], a3, [linear], .2, [0, 0, 255])
+        for i in range(5):
+            v1.addFunction([.5], A[:,i], [linear], 0.2, colors[i])
 
         F1.addVariation(v1, N)
         F1.build()
         print("Running")
         F1.runAll()
         print("Generating the image")
-        out = F1.toImage(600, coef_forget=.1, optional_kernel_filtering=False)
-        out.save("serp.png")
 
-    def make_mess():
-        print("init mess")
-        burn = 50
-        niter = 100
-        zoom = .45
-        N = 20000
-        colors = [[70, 119, 125],
-                  [96, 20, 220],
-                  [0, 0, 150],
-                  [82, 171, 165],
-                  [28, 43, 161]]
 
-        NFunc = 30
-        a = np.zeros((NFunc, 6))
-        for i in range(NFunc):
-            a[i, [((i + 1) * 2) % 6,
-                  (i * 3 + 2) % 6,
-                  (i * 4 + 3) % 6]] = 1
+        out, bitmap = F1.toImage(1024, 
+            coef_forget=fi, 
+            coef_intensity=ci,
+            optional_kernel_filtering=False)
+        
+        plt.imshow(bitmap, interpolation = 'bicubic')
+        plt.show()
 
-        F1 = Fractale(burn, niter, zoom)
+        print("--- Actions ---")
+        print("Save the image? (S)")
+        print("Change intensity coefficient? (c)")
+        print("Change forget coefficient? (f)")
+        action = input("Your action ?")
+        
+        if action =="S":
+            out.save("test.png")
+            end = True
+        elif action == "c":
+            ci = float(input("Coef intensity ? "))
+        elif action == "f":
+            fi = float(input("Coef forget ? "))
+        else:
+            print("please choose again")
+            action = input("Your action ?")
 
-        v1 = Variation()
-        for i in range(NFunc):
-            v1.addFunction([.8**(i + 1), (i + 1) * .2], a[i],
-                           [linear, bubble], .2, colors[i % 5])
 
-        v1.addRotation((8, np.pi / 4, 1))
-
-        F1.addVariation(v1, N)
-
-        F1.build()
-        print("Running")
-        F1.runAll()
-        print("Generating the image")
-        out = F1.toImage(600,
-                         coef_forget=.1,
-                         coef_intensity=.02,
-                         optional_kernel_filtering=True)
-        out.save("mess.png")
-
-    make_serp()
-    make_mess()
+    # from helpers import make_serp()
+    # make_serp()
+    # make_mess()
