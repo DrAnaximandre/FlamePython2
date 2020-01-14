@@ -124,19 +124,19 @@ class Variation:
             raise ValueError(
                 "This variation is locked, I cannot add the rotation")
 
-    def runAllfunctions(self, batchpointsF, batchpointsC):
+    def runAllfunctions(self, coordinates, batchpointsC):
         """ Calls all the functions (including the final if it exists).
 
             Parameters:
 
-            - batchpointsF: np.array of size Number of points x 3
+            - coordinates: np.array of size Number of points x 3
                 it's a columns of ones and the coordinates of the points.
             - batchpointsC: np.array of size Number of points x 3
                 it's the colors of the points so it
                 should scale between 0 and 255
 
         """
-        Nloc = batchpointsF.shape[0]  # how many points in the batch
+        Nloc = coordinates.shape[0]  # how many points in the batch
         r = np.random.uniform(size=Nloc)  # each point is attributed a rand
         resF = np.zeros(shape=(Nloc, 2))  # creation of the empty results
         resC = np.zeros(shape=(Nloc, 3))
@@ -149,7 +149,7 @@ class Variation:
             sel = np.where((mask1) & (mask2))[0]
             # then we call the function on the slice. The whole process could
             # be parallelized since we work on slices, but it's quite quick so
-            resF[sel, :] = self.functions[i].call(batchpointsF[sel, :])
+            resF[sel, :] = self.functions[i].call(coordinates[sel, :])
             # then we blend the color of the points with the color of the
             # function by averaging them
             # colorbrew = np.ones(shape=(len(sel), 3)) * self.cols[i]
