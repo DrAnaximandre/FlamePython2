@@ -3,6 +3,8 @@ import numpy as np
 from PIL import Image, ImageFilter
 import sys
 import matplotlib.pyplot as plt
+from quizz import quizz
+
 
 class Function:
     '''
@@ -334,63 +336,60 @@ class Fractale:
         return(out, bitmap)
 
 
+class ImageParameters(object):
+
+    def __init__(self, name):
+        self.name = name
+        self.burn = 5
+        self.niter = 25
+        self.zoom = 1
+        self.N = 5000
+        self.end = False
+        self.ci = 0.5
+        self.fi = 1
+        self.clip=0.5
+        self.W = 3
+        self.imsize = 1024
+        self.colors = [[250, 0, 0],
+                  [0, 250, 0],
+                  [0, 0, 250]]
+        A = np.array(np.random.normal(0,2/np.sqrt(6),(self.W,6)))
+        mask_clip = np.abs(A)<self.clip
+        not_mask_clip = np.invert(mask_clip)
+        A[mask_clip] = 0
+        A[not_mask_clip] = np.random.uniform()*A[not_mask_clip]
+        self.A = A
+
+
 if __name__ == '__main__':
 
-    burn = 0
-    niter = 25
-    zoom = 1
-    N = 5000
+    main_param = ImageParameters("find-the-lock")
+
     end = False
-    ci = 0.5
-    fi = 1
-    colors = [[250, 0, 0],
-              [250, 250, 0],
-              [0, 250, 0],
-              [0, 0, 250],
-              [28, 75, 250]]
-
-    A = np.array(np.random.normal(0,2/np.sqrt(6),(6,5)))
-
-
+    iteration =0
     while not end:
-
-        F1 = Fractale(burn, niter, zoom)
+        iteration +=1
+        F1 = Fractale(main_param.burn, main_param.niter, main_param.zoom)
         v1 = Variation()
-        for i in range(5):
-            v1.addFunction([.5], A[:,i], [linear], 0.2, colors[i])
+        for i in range(main_param.W):
+            v1.addFunction([.5], main_param.A[i,:], [linear], 0.2, main_param.colors[i%3])
 
-        F1.addVariation(v1, N)
+        F1.addVariation(v1, main_param.N)
         F1.build()
         print("Running")
         F1.runAll()
         print("Generating the image")
 
 
-        out, bitmap = F1.toImage(1024, 
-            coef_forget=fi, 
-            coef_intensity=ci,
+        out, bitmap = F1.toImage(main_param.imsize, 
+            coef_forget=main_param.fi, 
+            coef_intensity=main_param.ci,
             optional_kernel_filtering=False)
         
-        plt.imshow(bitmap, interpolation = 'bicubic')
+        plt.imshow(bitmap, interpolation = 'None')
         plt.show()
 
-        print("--- Actions ---")
-        print("Save the image? (S)")
-        print("Change intensity coefficient? (c)")
-        print("Change forget coefficient? (f)")
-        action = input("Your action ?")
-        
-        if action =="S":
-            out.save("test.png")
-            end = True
-        elif action == "c":
-            ci = float(input("Coef intensity ? "))
-        elif action == "f":
-            fi = float(input("Coef forget ? "))
-        else:
-            print("please choose again")
-            action = input("Your action ?")
-
+        main_param, end = quizz(main_param,iteration, out)
 
     # from helpers import make_serp()
     # make_serp()
