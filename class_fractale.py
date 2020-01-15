@@ -295,8 +295,8 @@ class Fractale:
                 verbose=0):
 
         imgtemp = Image.new('RGB', (sizeImage, sizeImage), "black")
-        bitmap = np.array(imgtemp)
-        intensity = np.zeros((sizeImage, sizeImage, 3))
+        bitmap = np.array(imgtemp).astype(np.float)
+        intensity = np.zeros((sizeImage, sizeImage))
 
         F_loc = (sizeImage * (self.F + 1) / 2).astype("i2")
 
@@ -319,7 +319,7 @@ class Fractale:
         intensity = np.power(np.log(intensity + 1
                                     ) / np.log(nmax + 1), coef_intensity)
 
-        bitmap = np.uint8(bitmap * intensity)
+        bitmap = np.uint8(bitmap * np.reshape(np.repeat(intensity,3), (sizeImage,sizeImage,3)))
 
         out = Image.fromarray(bitmap)
 
@@ -346,14 +346,14 @@ class ImageParameters(object):
         self.N = 5000
         self.end = False
         self.ci = 0.5
-        self.fi = 1
-        self.clip=0.5
-        self.W = 3
+        self.fi = 1.5
+        self.clip=0.1
+        self.W = 6
         self.imsize = 1024
         self.colors = [[250, 0, 0],
                   [0, 250, 0],
                   [0, 0, 250]]
-        A = np.array(np.random.normal(0,2/np.sqrt(6),(self.W,6)))
+        A = np.array(np.random.normal(1,2, (self.W,6)))
         mask_clip = np.abs(A)<self.clip
         not_mask_clip = np.invert(mask_clip)
         A[mask_clip] = 0
@@ -363,34 +363,34 @@ class ImageParameters(object):
 
 if __name__ == '__main__':
 
-    main_param = ImageParameters("find-the-lock")
+    # main_param = ImageParameters("find-the-lock")
 
-    end = False
-    iteration =0
-    while not end:
-        iteration +=1
-        F1 = Fractale(main_param.burn, main_param.niter, main_param.zoom)
-        v1 = Variation()
-        for i in range(main_param.W):
-            v1.addFunction([.5], main_param.A[i,:], [linear], 0.2, main_param.colors[i%3])
+    # end = False
+    # iteration =0
+    # while not end:
+    #     iteration +=1
+    #     F1 = Fractale(main_param.burn, main_param.niter, main_param.zoom)
+    #     v1 = Variation()
+    #     for i in range(main_param.W):
+    #         v1.addFunction([.5], main_param.A[i,:], [linear], 0.2, main_param.colors[i%3])
 
-        F1.addVariation(v1, main_param.N)
-        F1.build()
-        print("Running")
-        F1.runAll()
-        print("Generating the image")
+    #     F1.addVariation(v1, main_param.N)
+    #     F1.build()
+    #     print("Running")
+    #     F1.runAll()
+    #     print("Generating the image")
 
 
-        out, bitmap = F1.toImage(main_param.imsize, 
-            coef_forget=main_param.fi, 
-            coef_intensity=main_param.ci,
-            optional_kernel_filtering=False)
+    #     out, bitmap = F1.toImage(main_param.imsize, 
+    #         coef_forget=main_param.fi, 
+    #         coef_intensity=main_param.ci,
+    #         optional_kernel_filtering=False)
         
-        plt.imshow(bitmap, interpolation = 'None')
-        plt.show()
+    #     plt.imshow(bitmap, interpolation = 'None')
+    #     plt.show()
 
-        main_param, end = quizz(main_param,iteration, out)
+    #     main_param, end = quizz(main_param,iteration, out)
 
-    # from helpers import make_serp()
-    # make_serp()
+    from helpers import make_serp
+    make_serp()
     # make_mess()

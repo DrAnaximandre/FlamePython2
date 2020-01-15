@@ -118,12 +118,14 @@ def rotation(ncuts, angle, resF, r, coef=1):
 def renderImage(F_loc, C, bitmap, intensity, goods, coef_forget):
     ''' this renders the image with a jit compilation
     '''
+    cf1 = coef_forget + 1
+    C = C * coef_forget/ cf1
     for i in goods:
         ad0 = F_loc[i, 0]
         ad1 = F_loc[i, 1]
-        sto = bitmap[ad0, ad1]
-        a = (C[i, :] * coef_forget + sto) / (coef_forget + 1)
-        bitmap[ad0, ad1] = a
-        intensity[ad0, ad1, :] += 1
+        bitmap[ad0, ad1] /= cf1
+        bitmap[ad0, ad1] += C[i, :]
+        # a = (C[i, :] * coef_forget + sto) / (coef_forget + 1)
+        intensity[ad0, ad1] += 1
     #print("    end loop bitmap and intensity")
     return bitmap, intensity
