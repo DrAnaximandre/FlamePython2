@@ -8,6 +8,7 @@ def quizz(param, iteration, out):
     print("Change forget coefficient? (f)")
     print("Change Clip? (C)")
     print("Change A? (A)")
+    print("multiply A? (M)")
     print("add small noise to A? (a)")
     print("change N ? (N)")
     print("change niter(n)")
@@ -21,6 +22,9 @@ def quizz(param, iteration, out):
         param.fi = float(input("Coef forget ? "))
     elif action == "C":
         param.clip = float(input(f"Curent clip : {param.clip}, new clip? "))
+    elif action == "M":
+        coef = float(input("choose a value to multiply A"))
+        param.A *= coef 
     elif action == "A":
         print(param.A)
         coord = int(input("row")), int(input("col"))
@@ -29,10 +33,10 @@ def quizz(param, iteration, out):
         param.A[coord[0], coord[1]] = new_value
         print(param.A)
     elif action == "a":
-        noise = np.random.multivariate_normal(np.zeros(param.W),1/6*np.random.uniform(size = (param.W,param.W)),(6)).T
-        param.A = noise
+        noise = np.random.uniform(-1/6,1/6,(6,param.W)).T
+        param.A = param.A+noise
     elif action == "N":
-        param.N = int(input("N? "))
+        param.N = int(input(f" current: {param.N}, new N? "))
     elif action == "n":
         param.niter = int(input("niter ? "))
     elif action == "exit":
