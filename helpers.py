@@ -1,5 +1,5 @@
 import numpy as np
-from class_fractale import Fractale
+from Fractal import Fractal
 from utils import linear, bubble, swirl
 import matplotlib.pyplot as plt
 from quizz import quizz
@@ -39,7 +39,7 @@ def make_quizz():
     iteration = 0
     while not end:
         iteration += 1
-        F1 = Fractale(main_param.burn, main_param.niter, main_param.zoom)
+        F1 = Fractal(main_param.burn, main_param.niter, main_param.zoom)
         v1 = Variation()
         for i in range(main_param.W):
             v1.addFunction([.5, 0.2], main_param.A[i, :], [
@@ -73,7 +73,7 @@ def make_serp():
     a2 = np.array([1, 1, 0, 0, 0, 1])
     a3 = np.array([0, 1, 0, 1, 0, 1])
 
-    F1 = Fractale(burn, niter, zoom)
+    F1 = Fractal(burn, niter, zoom)
 
     v1 = Variation()
     v1.addFunction([.5], a1, [linear], .2, [255, 0, 0])
@@ -109,7 +109,7 @@ def make_mess():
               (i * 3 + 2) % 6,
               (i * 4 + 3) % 6]] = 1
 
-    F1 = Fractale(burn, niter, zoom)
+    F1 = Fractal(burn, niter, zoom)
 
     v1 = Variation()
     for i in range(NFunc):
