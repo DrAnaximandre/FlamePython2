@@ -17,23 +17,23 @@ class ImageParameters(object):
         self.end = False
         self.ci = 0.5
         self.fi = 0.05
-        self.clip=0.1
+        self.clip = 0.1
         self.W = 3
         self.imsize = 1024
         self.colors = [[250, 0, 0],
-                  [0, 250, 0],
-                  [0, 0, 250]]
-        A = np.array(np.random.uniform(-1.2,1.2, (self.W,6)))
-        mask_clip = np.abs(A)<self.clip
+                       [0, 250, 0],
+                       [0, 0, 250]]
+        A = np.array(np.random.uniform(-1.2, 1.2, (self.W, 6)))
+        mask_clip = np.abs(A) < self.clip
         not_mask_clip = np.invert(mask_clip)
         A[mask_clip] = 0
         A[not_mask_clip] = A[not_mask_clip]
         self.A = A
 
 
-def make_quizz():
+def make_quizz(name="key-book-swirl"):
 
-    main_param = ImageParameters("key-book-swirl")
+    main_param = ImageParameters(name)
 
     end = False
     iteration = 0
@@ -125,7 +125,7 @@ def make_mess():
     F1.runAll()
     print("Generating the image")
     out, bitmap = F1.toImage(600,
-                     coef_forget=.1,
-                     coef_intensity=.02,
-                     optional_kernel_filtering=True)
+                             coef_forget=.1,
+                             coef_intensity=.02,
+                             optional_kernel_filtering=True)
     out.save("mess.png")
