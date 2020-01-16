@@ -1,3 +1,6 @@
+import numpy as np
+from Function import Function
+from utils import rotation
 
 class Variation:
     '''

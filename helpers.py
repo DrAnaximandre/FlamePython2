@@ -1,13 +1,73 @@
 import numpy as np
-from class_fractale import Fractale, Variation
-from utils import linear
+from class_fractale import Fractale
+from utils import linear, bubble, swirl
+import matplotlib.pyplot as plt
+from quizz import quizz
+from Variation import Variation
+
+
+class ImageParameters(object):
+
+    def __init__(self, name):
+        self.name = name
+        self.burn = 5
+        self.niter = 25
+        self.zoom = 1
+        self.N = 5000
+        self.end = False
+        self.ci = 0.5
+        self.fi = 0.05
+        self.clip=0.1
+        self.W = 3
+        self.imsize = 1024
+        self.colors = [[250, 0, 0],
+                  [0, 250, 0],
+                  [0, 0, 250]]
+        A = np.array(np.random.uniform(-1.2,1.2, (self.W,6)))
+        mask_clip = np.abs(A)<self.clip
+        not_mask_clip = np.invert(mask_clip)
+        A[mask_clip] = 0
+        A[not_mask_clip] = A[not_mask_clip]
+        self.A = A
+
+
+def make_quizz():
+
+    main_param = ImageParameters("key-book-swirl")
+
+    end = False
+    iteration = 0
+    while not end:
+        iteration += 1
+        F1 = Fractale(main_param.burn, main_param.niter, main_param.zoom)
+        v1 = Variation()
+        for i in range(main_param.W):
+            v1.addFunction([.5, 0.2], main_param.A[i, :], [
+                           linear, swirl], 0.2, main_param.colors[i % 3])
+
+        F1.addVariation(v1, main_param.N)
+        F1.build()
+        print("Running")
+        F1.runAll()
+        print("Generating the image")
+
+        out, bitmap = F1.toImage(main_param.imsize,
+                                 coef_forget=main_param.fi,
+                                 coef_intensity=main_param.ci,
+                                 optional_kernel_filtering=False)
+
+        plt.imshow(bitmap, interpolation='None')
+        plt.show()
+
+        main_param, end = quizz(main_param, iteration, out)
+
 
 def make_serp():
     print("init serp triangle")
     burn = 20
     niter = 50
     zoom = 1
-    N = 10000
+    N = 5000
 
     a1 = np.array([0, 1, 0, 0, 0, 1])
     a2 = np.array([1, 1, 0, 0, 0, 1])
@@ -25,15 +85,17 @@ def make_serp():
     print("Running")
     F1.runAll()
     print("Generating the image")
-    out, bitmap = F1.toImage(600, coef_forget=.1, optional_kernel_filtering=False)
+    out, bitmap = F1.toImage(
+        600, coef_forget=.1, optional_kernel_filtering=False)
     out.save("serp.png")
+
 
 def make_mess():
     print("init mess")
-    burn = 50
-    niter = 100
+    burn = 20
+    niter = 50
     zoom = .45
-    N = 20000
+    N = 5000
     colors = [[70, 119, 125],
               [96, 20, 220],
               [0, 0, 150],
@@ -62,7 +124,7 @@ def make_mess():
     print("Running")
     F1.runAll()
     print("Generating the image")
-    out = F1.toImage(600,
+    out, bitmap = F1.toImage(600,
                      coef_forget=.1,
                      coef_intensity=.02,
                      optional_kernel_filtering=True)
