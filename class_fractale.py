@@ -11,7 +11,7 @@ class Function:
         Defines a function to be applied to the coordinates.
 
         Parameters:
-            - ws the weights : it's a list of weights that are applied
+            - weights : it's a list of weights that are applied
                 to each parameters for each function (additives).
             - params : a list of lenght 6.
                 The 3 first are the coefficients for resp. a constant, x,
@@ -22,9 +22,9 @@ class Function:
                 expinj, pdj, bubble.
     '''
 
-    def __init__(self, ws, params, additives):
+    def __init__(self, weights, params, additives):
 
-        self.ws = ws
+        self.weights = weights
         self.params = params
         self.additives = additives
 
@@ -39,7 +39,7 @@ class Function:
         x_loc = np.dot(points, self.params[:3])
         y_loc = np.dot(points, self.params[3:])
         res = np.zeros((points.shape[0], 2))
-        for i in range(len(self.ws)):
+        for i in range(len(self.weights)):
             res += self.ws[i] * self.additives[i](x_loc, y_loc)
         return res
 
