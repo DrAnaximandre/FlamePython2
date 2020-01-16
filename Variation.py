@@ -2,6 +2,7 @@ import numpy as np
 from Function import Function
 from utils import rotation
 
+
 class Variation:
     '''
         A variation is a set of several functions.
@@ -24,7 +25,7 @@ class Variation:
         the cumulative probability to have each of the functions.
     '''
 
-    def __init__(self):
+    def __init__(self, N):
         self.Nfunctions = 0  # the number of functions in the Variation
         self.functions = []  # a list where the functions are stored
         self.vproba = [0]  # a list of probabilities, see doc
@@ -32,6 +33,7 @@ class Variation:
         self.lockVariation = False  # a bool: can I still add functions?
         self.rotation = []  # a list of rotations to be applied
         self.final = False  # a bool: does the variation has a final function?
+        self.N = N # the number of MC samples run by this Variation
 
     def addFunction(self, ws, params, additives, proba, col):
         """ adds a function where the parameters are all provided
