@@ -3,11 +3,12 @@ import numpy as np
 
 class Function:
     '''
-        Defines a function to be applied to the coordinates.
+        Defines a Function to be applied to the coordinates
+            as a linear combination of Additives
 
         Parameters:
             - weights : it's a list of weights that are applied
-                to each parameters for each function (additives).
+                to each parameters for each Additi=ve.
             - params : a list of lenght 6.
                 The 3 first are the coefficients for resp. a constant, x,
                 and y to form the x of the vector that goes in the additives.
@@ -21,8 +22,10 @@ class Function:
         self.params = params
         self.additives = additives
 
+        assert len(self.weights) == len(self.additives)
+
     def call(self, coordinates):
-        ''' Applies the function to a bunch of coordinates.
+        ''' Applies the function to an array of coordinates.
 
         Parameters:
             - coordinates is a np.array of size number of points x 2
