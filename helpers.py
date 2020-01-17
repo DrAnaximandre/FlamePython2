@@ -1,6 +1,6 @@
 import numpy as np
 from Fractal import Fractal
-from utils import linear, bubble, swirl
+from Additives import linear, bubble, swirl
 import matplotlib.pyplot as plt
 from quizz import quizz
 from Variation import Variation

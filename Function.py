@@ -12,9 +12,7 @@ class Function:
                 The 3 first are the coefficients for resp. a constant, x,
                 and y to form the x of the vector that goes in the additives.
                   Same for [3:6] that forms the y.
-            - additives: a list of functions in utils.py.
-                So far are implemented: linear, swirl, spherical,
-                expinj, pdj, bubble.
+            - additives: a list of functions
     '''
 
     def __init__(self, weights, params, additives):
