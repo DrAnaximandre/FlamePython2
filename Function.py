@@ -21,17 +21,19 @@ class Function:
         self.params = params
         self.additives = additives
 
-    def call(self, points):
-        ''' Applies the function to a bunch of points.
+    def call(self, coordinates):
+        ''' Applies the function to a bunch of coordinates.
 
         Parameters:
-            - points is a np.array of size number of points x 3
-            technically the first column should be full of ones,
-            but it's not checked for performance.
-       '''
+            - coordinates is a np.array of size number of points x 2
+                (x, y)
+        '''
+        N_points = coordinates.shape[0]
+        intercepts = np.ones((N_points, 1))
+        points = np.concatenate((intercepts, coordinates), axis=1)
         x_loc = np.dot(points, self.params[:3])
         y_loc = np.dot(points, self.params[3:])
-        res = np.zeros((points.shape[0], 2))
+        res = np.zeros((N_points, 2))
         for i in range(len(self.weights)):
             res += self.weights[i] * self.additives[i](x_loc, y_loc)
         return res

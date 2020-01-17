@@ -56,8 +56,7 @@ class Fractal:
                   "from the number of points in one image")
             sys.exit()
 
-        ones = np.ones(len(rangeIdsI))
-        totoF = np.column_stack((ones, self.F[rangeIdsI, :]))
+        totoF = self.F[rangeIdsI, :]
         totoC = self.C[rangeIdsI, :]
 
         for i in range(self.hmv):
