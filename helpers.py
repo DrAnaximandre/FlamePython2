@@ -40,12 +40,12 @@ def make_quizz(name="key-book-swirl"):
     while not end:
         iteration += 1
         F1 = Fractal(main_param.burn, main_param.niter, main_param.zoom)
-        v1 = Variation()
+        v1 = Variation(main_param.N)
         for i in range(main_param.W):
             v1.addFunction([.5, 0.2], main_param.A[i, :], [
                            linear, swirl], 0.2, main_param.colors[i % 3])
 
-        F1.addVariation(v1, main_param.N)
+        F1.addVariation(v1)
         F1.build()
         print("Running")
         F1.runAll()
@@ -75,12 +75,12 @@ def make_serp():
 
     F1 = Fractal(burn, niter, zoom)
 
-    v1 = Variation()
+    v1 = Variation(N)
     v1.addFunction([.5], a1, [linear], .2, [255, 0, 0])
     v1.addFunction([.5], a2, [linear], .2, [0, 255, 0])
     v1.addFunction([.5], a3, [linear], .2, [0, 0, 255])
 
-    F1.addVariation(v1, N)
+    F1.addVariation(v1)
     F1.build()
     print("Running")
     F1.runAll()
@@ -111,14 +111,14 @@ def make_mess():
 
     F1 = Fractal(burn, niter, zoom)
 
-    v1 = Variation()
+    v1 = Variation(N)
     for i in range(NFunc):
         v1.addFunction([.8**(i + 1), (i + 1) * .2], a[i],
                        [linear, bubble], .2, colors[i % 5])
 
     v1.addRotation((8, np.pi / 4, 1))
 
-    F1.addVariation(v1, N)
+    F1.addVariation(v1)
 
     F1.build()
     print("Running")

@@ -9,15 +9,14 @@ class Fractal:
     def __init__(self, burn, niter, zoom=1):
         self.zoom = zoom
         self.variations = []
-        self.Ns = []
+        # self.Ns = []
         # list that stores the number of points for each variation
         self.burn = burn
         self.niter = niter
         self.lockBuild = False
 
-    def addVariation(self, var, N):
+    def addVariation(self, var):
         self.variations.append(var)
-        self.Ns.append(N)
 
     def build(self):
         '''
@@ -25,12 +24,13 @@ class Fractal:
 
         '''
         if not self.lockBuild:
-            totalSize = np.sum(self.Ns) * self.niter
+            self.sumNs = sum([var.N for var in self.variations])
+            totalSize = self.sumNs * self.niter
             self.F = np.random.uniform(-1, 1, size=(totalSize, 2))
             self.C = np.ones(shape=(totalSize, 3)) * 255
             [v.fixProba() for v in self.variations]
-            self.lockBuild = True
             self.hmv = len(self.variations)
+            self.lockBuild = True
 
         else:
             print("You have already built this Fractale")
@@ -41,10 +41,9 @@ class Fractal:
             print("you are trying to run a Fractale not built")
             sys.exit()
 
-        sumNS = np.sum(self.Ns)
-        a = sumNS * whichiter
-        b = sumNS * (whichiter + 1)
-        c = sumNS * (whichiter + 2)
+        a = self.sumNs * whichiter
+        b = self.sumNs * (whichiter + 1)
+        c = self.sumNs * (whichiter + 2)
         rangeIdsI = np.arange(a, b)
         if burn:
             rangeIdsO = rangeIdsI
@@ -52,7 +51,7 @@ class Fractal:
             rangeIdsO = np.arange(b, c)
 
         # safety check
-        if len(rangeIdsI) != sumNS:
+        if len(rangeIdsI) != self.sumNs:
             print("the number of indices provided is different" +
                   "from the number of points in one image")
             sys.exit()
@@ -62,8 +61,8 @@ class Fractal:
         totoC = self.C[rangeIdsI, :]
 
         for i in range(self.hmv):
-            snsi = sum(self.Ns[:i])
-            ids = np.arange(snsi, snsi + self.Ns[i])
+            snsi = sum([var.N for var in self.variations[:i]])
+            ids = np.arange(snsi, snsi + self.variations[i].N)
 
             resloc, coloc = self.variations[i].runAllfunctions(
                 totoF[ids, :], totoC[ids, :])
