@@ -1,6 +1,6 @@
 import numpy as np
 from Fractal import Fractal
-from Additives import linear, bubble, swirl
+from Additives import linear, bubble, swirl,pdj
 import matplotlib.pyplot as plt
 from quizz import quizz
 from Variation import Variation
@@ -60,6 +60,35 @@ def make_quizz(name="key-book-swirl"):
         plt.show()
 
         main_param, end = quizz(main_param, iteration, out)
+
+
+def make_final():
+    burn = 20
+    niter = 50
+    zoom = 1
+    N = 15000
+
+    a1 = np.array([0, 1, 0, 0, 0, 1])
+    a2 = np.array([1, 1, 0, 0, 0, 1])
+    a3 = np.array([0, 1, 0, 1, 0, 1])
+
+    F1 = Fractal(burn, niter, zoom)
+
+    v1 = Variation(N)
+    v1.addFunction([.5], a1, [linear], .2, [255, 0, 0])
+    v1.addFunction([-0.5], a2, [linear], .2, [0, 255, 0])
+    v1.addFunction([.5], a3, [linear], .2, [0, 0, 255])
+    v1.addFinal([1.5], [-0.5, 0.0003, 1, 0.5, 1, -0.005], [pdj])
+    # v1.addRotation((35, np.pi / 4, 0.95))
+    F1.addVariation(v1)
+    F1.build()
+    print("Running")
+    F1.runAll()
+    print("Generating the image")
+    out, bitmap = F1.toImage(
+        1024, coef_forget=0.9,
+        optional_kernel_filtering=False)
+    out.save("final.png")
 
 
 def make_serp():
@@ -129,3 +158,7 @@ def make_mess():
                              coef_intensity=.02,
                              optional_kernel_filtering=True)
     out.save("mess.png")
+
+
+if __name__ == '__main__':
+    make_final()

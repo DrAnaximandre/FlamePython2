@@ -1,7 +1,7 @@
 import numpy as np
 
-def quizz(param, iteration, out):
 
+def quizz(param, iteration, out):
 
     print("--- Actions ---")
     print("Change intensity coefficient? (c)")
@@ -14,7 +14,7 @@ def quizz(param, iteration, out):
     print("change niter(n)")
     out.save(f"{param.name}-{iteration}.png")
     action = input("Your action ?")
-    
+
     end = False
     if action == "c":
         param.ci = float(input("Coef intensity ? "))
@@ -24,27 +24,25 @@ def quizz(param, iteration, out):
         param.clip = float(input(f"Curent clip : {param.clip}, new clip? "))
     elif action == "M":
         coef = float(input("choose a value to multiply A"))
-        param.A *= coef 
+        param.A *= coef
     elif action == "A":
         print(param.A)
         coord = int(input("row")), int(input("col"))
         current_value = param.A[coord[0], coord[1]]
-        new_value =  float(input(f"Current value {current_value} new value ?"))
+        new_value = float(input(f"Current value {current_value} new value ?"))
         param.A[coord[0], coord[1]] = new_value
         print(param.A)
     elif action == "a":
-        noise = np.random.uniform(-1/6,1/6,(6,param.W)).T
-        param.A = param.A+noise
+        noise = np.random.uniform(-1 / 6, 1 / 6, (6, param.W)).T
+        param.A = param.A + noise
     elif action == "N":
         param.N = int(input(f" current: {param.N}, new N? "))
     elif action == "n":
         param.niter = int(input("niter ? "))
     elif action == "exit":
-        end=True
+        end = True
     else:
         print("please choose again")
         action = input("Your action ?")
-
-
 
     return(param, end)

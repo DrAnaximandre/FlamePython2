@@ -59,9 +59,9 @@ def Rexpinj(x, y):
     return(np.column_stack((xx, yy)))
 
 
-def pdj(x, y, p1=.7, p2=3.14, p3=.7, p4=.2):
-    xx = np.sin(p1 * y) - np.cos(p2 * x)
-    yy = np.sin(p3 * x) - np.cos(p4 * y)
+def pdj(x, y, p1=.7, p2=0.9, p3=.7, p4=.2):
+    xx = np.sin(p1 * y) * np.cos(p2 * x)
+    yy = np.sin(p3 * x) * np.cos(p4 * y)
     return(np.column_stack((xx, yy)))
 
 

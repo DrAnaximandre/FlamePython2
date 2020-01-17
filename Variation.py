@@ -5,10 +5,7 @@ from utils import rotation
 
 class Variation:
     '''
-        A variation is a set of several functions.
-
-        It takes no parameters to build since they are all
-        updated each time you add a function.
+        A variation is a set of several Functions.
 
         The basic life cycle of such an object is: init,
         add some functions, then fixProba. The user should not
@@ -33,7 +30,7 @@ class Variation:
         self.lockVariation = False  # a bool: can I still add functions?
         self.rotation = []  # a list of rotations to be applied
         self.final = False  # a bool: does the variation has a final function?
-        self.N = N # the number of MC samples run by this Variation
+        self.N = N  # the number of MC samples run by this Variation
 
     def addFunction(self, ws, params, additives, proba, col):
         """ adds a function where the parameters are all provided
@@ -121,12 +118,7 @@ class Variation:
             # every point of resF.
             # note that the final function has no color thus it does not modify
             # resC.
-            onesfinal = np.ones(Nloc)
-            # As said in the Function.call doc, the first column of a
-            # batch of points should be full of ones for the call to work.
-            resF = self.final.call(np.column_stack((onesfinal, resF)))
-        else:
-            pass
+            resF = self.final.call(resF)
         return(resF, resC)
 
     def runAllrotations(self, resF):

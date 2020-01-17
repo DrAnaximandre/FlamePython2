@@ -145,7 +145,8 @@ class Fractal:
         return(out, bitmap)
 if __name__ == '__main__':
 
-    from helpers import make_serp, make_mess, make_quizz
-    make_serp()
-    make_mess()
+    from helpers import *
+    # make_serp()
+    # make_mess()
+    make_final()
     # make_quizz()
