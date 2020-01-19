@@ -9,16 +9,22 @@ from Variation import Variation
 class ImageParameters(object):
 
     def __init__(self, name):
+
+        # Name of the ImageParameters object
         self.name = name
+
+        # Parameters of the Fractal
         self.burn = 5
         self.niter = 25
         self.zoom = 1
+
+        # Parameters of the Variation
         self.N = 5000
-        self.end = False
+
         self.ci = 0.5
         self.fi = 0.05
         self.clip = 0.1
-        self.W = 3
+        self.W = 5
         self.imsize = 1024
         self.colors = [[250, 0, 0],
                        [0, 250, 0],
@@ -29,6 +35,9 @@ class ImageParameters(object):
         A[mask_clip] = 0
         A[not_mask_clip] = A[not_mask_clip]
         self.A = A
+        self.ws = np.random.uniform(size=(self.W,2))
+        self.p = np.random.uniform(size=(self.W))
+
 
 
 def make_quizz(name="key-book-swirl"):
@@ -42,8 +51,11 @@ def make_quizz(name="key-book-swirl"):
         F1 = Fractal(main_param.burn, main_param.niter, main_param.zoom)
         v1 = Variation(main_param.N)
         for i in range(main_param.W):
-            v1.addFunction([.5, 0.2], main_param.A[i, :], [
-                           linear, swirl], 0.2, main_param.colors[i % 3])
+            v1.addFunction(main_param.ws[i],
+                           main_param.A[i, :],
+                           [linear, swirl],
+                           main_param.p[i],
+                           main_param.colors[i % 3])
 
         F1.addVariation(v1)
         F1.build()
@@ -78,8 +90,8 @@ def make_final():
     v1.addFunction([.5], a1, [linear], .2, [255, 0, 0])
     v1.addFunction([-0.5], a2, [linear], .2, [0, 255, 0])
     v1.addFunction([.5], a3, [linear], .2, [0, 0, 255])
-    v1.addFinal([1.5], [-0.5, 0.0003, 1, 0.5, 1, -0.005], [pdj])
-    # v1.addRotation((35, np.pi / 4, 0.95))
+
+    v1.addFinal([0.95], [-0.5, 0.0003, 1, 0.5, 1, -0.005], [linear])
     F1.addVariation(v1)
     F1.build()
     print("Running")
@@ -105,9 +117,9 @@ def make_serp():
     F1 = Fractal(burn, niter, zoom)
 
     v1 = Variation(N)
-    v1.addFunction([.5], a1, [linear], .2, [255, 0, 0])
-    v1.addFunction([.5], a2, [linear], .2, [0, 255, 0])
-    v1.addFunction([.5], a3, [linear], .2, [0, 0, 255])
+    v1.addFunction([.5], a1, [linear], .5, [255, 0, 0])
+    v1.addFunction([.5], a2, [linear], .25, [0, 255, 0])
+    v1.addFunction([.5], a3, [linear], .25, [0, 0, 255])
 
     F1.addVariation(v1)
     F1.build()
@@ -124,7 +136,7 @@ def make_mess():
     burn = 20
     niter = 50
     zoom = .45
-    N = 5000
+    N = 15000
     colors = [[70, 119, 125],
               [96, 20, 220],
               [0, 0, 150],
@@ -161,4 +173,4 @@ def make_mess():
 
 
 if __name__ == '__main__':
-    make_final()
+    make_quizz("five-W")

@@ -12,6 +12,7 @@ def quizz(param, iteration, out):
     print("add small noise to A? (a)")
     print("change N ? (N)")
     print("change niter(n)")
+    print("Exit (exit)?")
     out.save(f"{param.name}-{iteration}.png")
     action = input("Your action ?")
 
@@ -33,7 +34,7 @@ def quizz(param, iteration, out):
         param.A[coord[0], coord[1]] = new_value
         print(param.A)
     elif action == "a":
-        noise = np.random.uniform(-1 / 6, 1 / 6, (6, param.W)).T
+        noise = np.random.uniform(-1 / 6, 1 / 60, (6, param.W)).T
         param.A = param.A + noise
     elif action == "N":
         param.N = int(input(f" current: {param.N}, new N? "))
