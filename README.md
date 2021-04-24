@@ -1,6 +1,6 @@
 # FlamePython2
 
-<p align="center"> <img src="Images/mess.png"></p>
+<p align="center"> <img src="images/mess.png"></p>
 
 
 
@@ -79,5 +79,5 @@ Second version of the Flame Fractals in Python - inspired by Draves and Reckase 
 
 I tried to make it easy to add Functions and Variations to the Fractals. 
 
-<p align="center"> <img src="Images/Serp.png"></p>
+<p align="center"> <img src="images/Serp.png"></p>
 
