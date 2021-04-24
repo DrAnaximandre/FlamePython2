@@ -1,10 +1,7 @@
 # FlamePython2
 
-<p align="center"> <img src="mess.png"></p>
+<p align="center"> <img src="Images/mess.png"></p>
 
-Second version of the Flame Fractals in Python - inspired by Draves and Reckase (http://flam3.com/flame_draves.pdf)
-
-I tried to make it easy to add Functions and Variations to the Fractals. 
 
 
 ### Dependencies; Installation
@@ -75,5 +72,12 @@ out.save("serp.png")
 
 Taddaaa!
 
-<p align="center"> <img src="Serp.png"></p>
+
+### History of the repo
+
+Second version of the Flame Fractals in Python - inspired by Draves and Reckase (http://flam3.com/flame_draves.pdf)
+
+I tried to make it easy to add Functions and Variations to the Fractals. 
+
+<p align="center"> <img src="Images/Serp.png"></p>
 
