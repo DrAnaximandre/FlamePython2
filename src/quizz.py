@@ -13,7 +13,7 @@ def quizz(param, iteration, out):
     print("change N ? (N)")
     print("change niter(n)")
     print("Exit (exit)?")
-    out.save(f"{param.name}-{iteration}.png")
+    out.save(f"images/{param.name}-{iteration}.png")
     action = input("Your action ?")
 
     end = False

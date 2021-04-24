@@ -2,10 +2,21 @@
 
 <p align="center"> <img src="images/mess.png"></p>
 
+### Dependencies
 
+Requirements are minimal:
+```
+numpy
+pillow
+matplotlib
+```
 
-### Dependencies; Installation
-The code relies on `numpy` and `PIL`. You can just clone the repo and it should work.
+### Generate your first images
+
+Run the following command in a terminal:
+```
+python src/helpers.py
+```
 
 ### UserGuide Example
 
