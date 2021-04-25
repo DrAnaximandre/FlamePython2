@@ -67,7 +67,7 @@ def pdj(x, y, p1=.7, p2=0.9, p3=.7, p4=.2):
 
 def bubble(x, y):
     r = np.sqrt(x * x + y * y)
-    coef = 1 / (r * r + .002)
+    coef = 1 / (r * r + 1e-8)
     return(np.column_stack((coef * x, coef * y)))
 
 

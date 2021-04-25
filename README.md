@@ -9,6 +9,7 @@ Requirements are minimal:
 numpy
 pillow
 matplotlib
+tqdm
 ```
 
 ### Generate your first images

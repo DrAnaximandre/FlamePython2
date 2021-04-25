@@ -12,6 +12,7 @@ def quizz(param, iteration, out):
     print("add small noise to A? (a)")
     print("change N ? (N)")
     print("change niter(n)")
+    print("change ws? (w)")
     print("Exit (exit)?")
     out.save(f"images/{param.name}-{iteration}.png")
     action = input("Your action ?")
@@ -34,12 +35,21 @@ def quizz(param, iteration, out):
         param.A[coord[0], coord[1]] = new_value
         print(param.A)
     elif action == "a":
-        noise = np.random.uniform(-1 / 6, 1 / 60, (6, param.W)).T
+        noise = np.random.uniform(-1 / 6, 1 / 6, (6, param.W)).T
         param.A = param.A + noise
     elif action == "N":
         param.variation_parameters.N = int(input(f" current: {str(param.variation_parameters)}, new N? "))
     elif action == "n":
-        param.niter = int(input("niter ? "))
+        param.fractal_parameters.niter = int(input("niter ? "))
+
+    elif action == "w":       
+        print(param.ws)
+        coord = int(input("row")), int(input("col"))
+        current_value = param.ws[coord[0], coord[1]]
+        new_value = float(input(f"Current value {current_value} new value ?"))
+        param.ws[coord[0], coord[1]] = new_value
+        print(param.ws)
+
     elif action == "exit":
         end = True
     else:

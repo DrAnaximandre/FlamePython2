@@ -19,13 +19,13 @@ class ImageParameters(object):
         self.variation_parameters = VariationParameters()
 
         # Parameters of the rendering
-        self.ci = 0.5
+        self.ci = 1.0
         self.fi = 0.05
-        self.clip = 0.1
+        self.clip = 0.5
 
 
         # Parameters of the additives
-        self.W = 5
+        self.W = 6
         self.imsize = 1024
         self.colors = [[250, 0, 0],
                        [0, 250, 0],
@@ -36,7 +36,7 @@ class ImageParameters(object):
         A[mask_clip] = 0
         A[not_mask_clip] = A[not_mask_clip]
         self.A = A
-        self.ws = np.random.uniform(size=(self.W,2))
+        self.ws = np.random.uniform(size=(self.W,3))
         self.p = np.random.uniform(size=(self.W))
 
 
@@ -54,7 +54,7 @@ def make_quizz(name="key-book-swirl"):
         for i in range(main_param.W):
             v1.addFunction(main_param.ws[i],
                            main_param.A[i, :],
-                           [linear, swirl],
+                           [linear, swirl, bubble],
                            main_param.p[i],
                            main_param.colors[i % 3])
 
@@ -174,4 +174,4 @@ def make_mess():
 
 
 if __name__ == '__main__':
-    make_quizz("wow-another-one")
+    make_quizz("water-shampoo")

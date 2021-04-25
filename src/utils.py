@@ -1,5 +1,5 @@
 import numpy as np
-
+from tqdm import tqdm
 
 def rotation(ncuts, angle, resF, r, coef=1):
     """ Util function to apply a rotation several times.
@@ -29,7 +29,7 @@ def renderImage(F_loc, C, bitmap, intensity, goods, coef_forget):
         '''
     cf1 = coef_forget + 1
     C = C * coef_forget / cf1
-    for i in goods:
+    for i in tqdm(goods):
         ad0 = F_loc[i, 0]
         ad1 = F_loc[i, 1]
         bitmap[ad0, ad1] /= cf1

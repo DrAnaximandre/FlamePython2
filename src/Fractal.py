@@ -47,7 +47,7 @@ class Fractal:
             print("You have already built this Fractale")
 
     def run1iter(self, whichiter, burn):
-        # safety check
+        # safety checkz
         if not self.already_built:
             print("you are trying to run a Fractale not built")
             sys.exit()
