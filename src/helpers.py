@@ -69,8 +69,8 @@ def make_quizz(name="key-book-swirl"):
                                  coef_intensity=main_param.ci,
                                  optional_kernel_filtering=False)
 
-        plt.imshow(bitmap, interpolation='None')
-        plt.show()
+        # plt.imshow(bitmap, interpolation='None')
+        # plt.show()
 
         main_param, end = quizz(main_param, iteration, out)
 
