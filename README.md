@@ -16,8 +16,15 @@ tqdm
 
 Run the following command in a terminal:
 ```
-python src/helpers.py
+python src/helpers.py 
 ```
+
+An image will be saved locally.
+Your action on the parameters that were used to generate this image is required in the terminal.   
+
+One first suggestion is to increase N from the default to 1000000.
+The time needed to render an image will drasticly increase.
+
 
 ### UserGuide Example
 

@@ -27,10 +27,10 @@ class ImageParameters(object):
         # Parameters of the additives
         self.W = 4
         self.imsize = 1024
-        self.colors = [[250, 250,250],
-                       [125, 125, 125],
-                       [200, 200, 200]]
-        A = np.array(np.random.uniform(-1.8, 1.8, (self.W, 6)))
+        self.colors = [[250, 0, 0],
+                       [0, 250, 0],
+                       [0, 0, 250]]
+        A = np.random.uniform(-1.2, 1.2, (self.W, 6))
         mask_clip = np.abs(A) < self.clip
         A[mask_clip] = 0
         self.A = A
@@ -70,8 +70,8 @@ def make_quizz(name="key-book-swirl"):
                                  coef_intensity=main_param.ci,
                                  optional_kernel_filtering=False)
 
-        plt.imshow(bitmap, interpolation='None')
-        plt.show()
+        # plt.imshow(bitmap, interpolation='None')
+        # plt.show()
 
         main_param, end = quizz(main_param, iteration, out)
 
@@ -261,5 +261,4 @@ def make_mess():
 
 
 if __name__ == '__main__':
-    #make_quizz("4-additives-gray")
     big_thingy()
