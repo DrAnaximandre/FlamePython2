@@ -1,12 +1,12 @@
 import numpy as np
 from Fractal import Fractal, FractalParameters
-from Additives import linear, bubble, swirl,pdj
+from Additives import linear, bubble, swirl,pdj, spherical, sinmoche
 import matplotlib.pyplot as plt
 from quizz import quizz
 from Variation import Variation, VariationParameters
 
 
-
+import PIL.ImageOps as pops
 
 
 class ImageParameters(object):
@@ -21,23 +21,24 @@ class ImageParameters(object):
         # Parameters of the rendering
         self.ci = 1.0
         self.fi = 0.05
-        self.clip = 0.5
+        self.clip = 0.7
 
 
         # Parameters of the additives
-        self.W = 6
+        self.W = 4
         self.imsize = 1024
-        self.colors = [[250, 0, 0],
-                       [0, 250, 0],
-                       [0, 0, 250]]
-        A = np.array(np.random.uniform(-1.2, 1.2, (self.W, 6)))
+        self.colors = [[250, 250,250],
+                       [125, 125, 125],
+                       [200, 200, 200]]
+        A = np.array(np.random.uniform(-1.8, 1.8, (self.W, 6)))
         mask_clip = np.abs(A) < self.clip
-        not_mask_clip = np.invert(mask_clip)
         A[mask_clip] = 0
-        A[not_mask_clip] = A[not_mask_clip]
         self.A = A
-        self.ws = np.random.uniform(size=(self.W,3))
-        self.p = np.random.uniform(size=(self.W))
+        ws = np.random.uniform(-0.99, 0.99 , size=(self.W,4))
+        mask_clip = np.abs(ws) < self.clip
+        ws[mask_clip] = 0
+        self.ws = ws
+        self.p = np.ones(shape=(self.W))
 
 
 
@@ -54,7 +55,7 @@ def make_quizz(name="key-book-swirl"):
         for i in range(main_param.W):
             v1.addFunction(main_param.ws[i],
                            main_param.A[i, :],
-                           [linear, swirl, bubble],
+                           [linear, swirl, bubble, spherical],
                            main_param.p[i],
                            main_param.colors[i % 3])
 
@@ -104,6 +105,36 @@ def make_final():
     out.save("final.png")
 
 
+def make_gray_serp():
+    print("init thingy")
+
+    fp = FractalParameters()
+    vp = VariationParameters(1000000)
+
+    a1 = np.array([0, 1, 0, -0.5, 0, 1.4])
+    a2 = np.array([1, 1, -1, 0, 0, 1])
+    a3 = np.array([0, 1, 0, 0.6, 0, 1])
+
+    F1 = Fractal(fp)
+
+    v1 = Variation(vp)
+    v1.addFunction([.5], a1, [swirl], .5, [50, 150, 120])
+    v1.addFunction([.5], a2, [linear], .5, [90, 190, 255])
+    v1.addFunction([.5, -1], a3, [bubble, linear], .5, [200, 80, 40])
+    v1.addFinal([1, -0.5, 0.05], [-0.4, 1, 1, -0.5, 1.3, 1e-2], [bubble, bubble, bubble ])
+
+    F1.addVariation(v1)
+
+
+    F1.build()
+    print("Running")
+    F1.runAll()
+    print("Generating the image")
+    out, bitmap = F1.toImage(
+        3200, coef_forget=.1, optional_kernel_filtering=False)
+    out.save("bigger-thingy2.png")
+
+
 def make_serp():
     print("init serp triangle")
     burn = 20
@@ -130,6 +161,62 @@ def make_serp():
     out, bitmap = F1.toImage(
         600, coef_forget=.1, optional_kernel_filtering=False)
     out.save("serp.png")
+
+
+def big_thingy():
+
+
+
+    # colors = np.array([[3, 4, 94],
+    # [200,0,0],
+    # [0,119,182],
+    # [0,150,200],
+    # [0,180,216],
+    # [72,202,228],
+    # [173, 232, 244]])
+
+    colors = np.array([[229,219,255],
+    (215,203,255),
+    (208,179,255),
+    (186,151,255),
+    (167,112,255)])
+
+
+    fp = FractalParameters()
+    vp = VariationParameters(1000000)
+
+
+    A = np.random.choice([0,.25,.5,-.5,-.75,1], size=(5,6),
+        p = [0.35,0.1,0.2,0.2,0.05,0.1])
+
+    print(A)
+    
+    ws = np.random.choice([0,.25,.5,-.5,-.75,1], size=(5,3),
+        p = [0.1,0.2,0.35,0.2,0.05,0.1])
+
+    F1 = Fractal(fp)
+
+    v1 = Variation(vp)
+    v1.addFunction(ws[0], A[0, :], [bubble, sinmoche, linear], .5, colors[0])
+    v1.addFunction(ws[1], A[1,:], [bubble, linear, sinmoche], .5, colors[1])
+    v1.addFunction(ws[2], A[2,:], [swirl, linear, spherical], .5, colors[2])
+    v1.addFunction(ws[3], A[3,:], [sinmoche, swirl, linear], .5, colors[3])
+    v1.addFunction(ws[4], A[4,:],  [sinmoche, swirl, pdj, ], .5, colors[4])
+    v1.addFinal([0.5, 0.75], [1, 0.5, 1, -1, 1, 1], [swirl, bubble ])
+
+    v1.addRotation((3, 2 * np.pi / 3, 1))
+    F1.addVariation(v1)
+
+
+    F1.build()
+    print("Running")
+    F1.runAll()
+    print("Generating the image")
+    out, bitmap = F1.toImage(
+        2000, coef_forget=.15, optional_kernel_filtering=True)
+    out.save("wb2.png")
+
+    pops.invert(out).save("bob.png")
 
 
 def make_mess():
@@ -174,4 +261,5 @@ def make_mess():
 
 
 if __name__ == '__main__':
-    make_quizz("water-shampoo")
+    #make_quizz("4-additives-gray")
+    big_thingy()

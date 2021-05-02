@@ -8,8 +8,8 @@ class FractalParameters(object):
 
     def __init__(self):
 
-        self.burn = 5 
-        self.niter = 25
+        self.burn = 10
+        self.niter = 30
         self.zoom = 1
 
 
@@ -71,11 +71,11 @@ class Fractal:
         totoC = self.C[rangeIdsI, :]
 
         for i in range(self.hmv):
-            snsi = sum([var.N for var in self.variations[:i]])
+            snsi = sum([var.N.N for var in self.variations[:i]])
             ids = np.arange(snsi, snsi + self.variations[i].N.N)  # ugh
 
             resloc, coloc = self.variations[i].runAllfunctions(
-                totoF[ids, :], totoC[ids, :])
+                totoF[ids, :], totoC[ids, :], 1)#whichiter/self.fractal_parameters.niter)
             storageF = self.variations[i].runAllrotations(resloc)
             self.F[rangeIdsO[ids], :] = storageF
             self.C[rangeIdsO[ids], :] = coloc
