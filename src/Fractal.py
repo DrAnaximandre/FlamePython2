@@ -2,55 +2,40 @@ from utils import *
 import numpy as np
 from PIL import Image, ImageFilter
 import sys
-
+from typing import List
 
 class FractalParameters(object):
 
-    def __init__(self):
+    def __init__(self, burn=5, niter=25, zoom=1):
 
-        self.burn = 5 
-        self.niter = 25
-        self.zoom = 1
+        self.burn = burn 
+        self.niter = niter
+        self.zoom = zoom
 
 
 class Fractal:
 
-    def __init__(self, fractal_parameters: FractalParameters):
+    def __init__(self, 
+        fractal_parameters: FractalParameters,
+        variations: List):
 
-
-        self.fractal_parameters = FractalParameters()
+        # Controllable parameters
+        self.fractal_parameters = fractal_parameters
         
-        # Internals
-        self.variations = []
-        self.already_built = False
-        # self.Ns = []
-        # list that stores the number of points for each variation
-        
+        # Variations
+        self.variations = variations
 
-    def addVariation(self, var):
-        self.variations.append(var)
+        # former build
+        self.sumNs = sum([var.N for var in self.variations])
+        totalSize = self.sumNs * self.fractal_parameters.niter
+        self.F = np.random.uniform(-1, 1, size=(totalSize, 2))
+        self.C = np.ones(shape=(totalSize, 3)) * 255
+        [v.fixProba() for v in self.variations]
+        self.hmv = len(self.variations)
 
-    def build(self):
-        '''
-            it is not advised to add variations after a build
-        '''
-        if not self.already_built:
-            self.sumNs = sum([var.N.N for var in self.variations])
-            totalSize = self.sumNs * self.fractal_parameters.niter
-            self.F = np.random.uniform(-1, 1, size=(totalSize, 2))
-            self.C = np.ones(shape=(totalSize, 3)) * 255
-            [v.fixProba() for v in self.variations]
-            self.hmv = len(self.variations)
-            self.already_built = True
-
-        else:
-            print("You have already built this Fractale")
+   
 
     def run1iter(self, whichiter, burn):
-        # safety checkz
-        if not self.already_built:
-            print("you are trying to run a Fractale not built")
-            sys.exit()
 
         a = self.sumNs * whichiter
         b = self.sumNs * (whichiter + 1)
@@ -61,18 +46,12 @@ class Fractal:
         else:
             rangeIdsO = np.arange(b, c)
 
-        # safety check
-        if len(rangeIdsI) != self.sumNs:
-            print("the number of indices provided is different" +
-                  "from the number of points in one image")
-            sys.exit()
-
         totoF = self.F[rangeIdsI, :]
         totoC = self.C[rangeIdsI, :]
 
         for i in range(self.hmv):
             snsi = sum([var.N for var in self.variations[:i]])
-            ids = np.arange(snsi, snsi + self.variations[i].N.N)  # ugh
+            ids = np.arange(snsi, snsi + self.variations[i].N)  # ugh
 
             resloc, coloc = self.variations[i].runAllfunctions(
                 totoF[ids, :], totoC[ids, :])
@@ -82,30 +61,13 @@ class Fractal:
 
         self.C[rangeIdsO, :] /= 2
 
-    def runAll(self):
+    def run(self):
         for i in np.arange(self.fractal_parameters.burn):
             self.run1iter(0, True)
         for i in np.arange(self.fractal_parameters.niter - 1):
             self.run1iter(i, False)
         self.F = self.F * self.fractal_parameters.zoom
 
-    def toScore(self, divs=4):
-        print("Scoring ... ")
-        conditions = np.zeros((self.F.shape[0], 4), dtype='bool')
-        conditions[:, 0] = self.F[:, 0] < 1
-        conditions[:, 1] = self.F[:, 0] > -1
-        conditions[:, 2] = self.F[:, 1] < 1
-        conditions[:, 3] = self.F[:, 1] > -1
-        goods = np.where(np.all(conditions, 1))[0]
-        hscore = depthcut(self.F[goods], 1, -1, -1, 1, 0, divs, [], "start")
-        res = ""
-        for i in range(divs):
-            datlevel = [score[0]
-                        for score in hscore if score[1] == i]
-            datstring = [str(i) for i in datlevel]
-            res += ";".join(datstring)
-            res += ";"
-        return(res)
 
     def toImage(self,
                 sizeImage=1000,

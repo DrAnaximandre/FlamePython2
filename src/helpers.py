@@ -104,32 +104,34 @@ def make_final():
     out.save("final.png")
 
 
-def make_serp():
+def make_serp(save=True):
     print("init serp triangle")
     burn = 20
     niter = 50
-    zoom = 1
-    N = 5000
+    zoom = 1.5
+    N = 10000
 
     a1 = np.array([0, 1, 0, 0, 0, 1])
     a2 = np.array([1, 1, 0, 0, 0, 1])
     a3 = np.array([0, 1, 0, 1, 0, 1])
 
-    F1 = Fractal(burn, niter, zoom)
-
     v1 = Variation(N)
     v1.addFunction([.5], a1, [linear], .5, [255, 0, 0])
-    v1.addFunction([.5], a2, [linear], .25, [0, 255, 0])
+    v1.addFunction([.5], a2, [linear], .25, [18, 200, 68])
     v1.addFunction([.5], a3, [linear], .25, [0, 0, 255])
 
-    F1.addVariation(v1)
-    F1.build()
+
+    F1P = FractalParameters(burn, niter, zoom)
+    F1 = Fractal(F1P, [v1])
+
+    
     print("Running")
-    F1.runAll()
+    F1.run()
     print("Generating the image")
     out, bitmap = F1.toImage(
         600, coef_forget=.1, optional_kernel_filtering=False)
-    out.save("serp.png")
+    if save:
+        out.save("serp.png")
 
 
 def make_mess():
@@ -174,4 +176,4 @@ def make_mess():
 
 
 if __name__ == '__main__':
-    make_quizz("brigand-")
+    make_serp(save=True)
