@@ -30,7 +30,7 @@ class ImageParameters(object):
         self.colors = [[250, 0, 0],
                        [0, 250, 0],
                        [0, 0, 250]]
-        A = np.array(np.random.uniform(-1.2, 1.2, (self.W, 6)))
+        A = np.random.uniform(-1.2, 1.2, (self.W, 6))
         mask_clip = np.abs(A) < self.clip
         not_mask_clip = np.invert(mask_clip)
         A[mask_clip] = 0
@@ -174,4 +174,4 @@ def make_mess():
 
 
 if __name__ == '__main__':
-    make_quizz("water-shampoo")
+    make_quizz("brigand-")
