@@ -62,7 +62,7 @@ class Fractal:
 
         return self.variations_list.runAllrotations(which_variation, package)
 
-    def bob(self, whichiter, burn):
+    def getRangeIndexes(self, whichiter, burn):
         a = self.sumNs * whichiter
         b = self.sumNs * (whichiter + 1)
         c = self.sumNs * (whichiter + 2)
@@ -77,7 +77,7 @@ class Fractal:
 
     def run1iter(self, whichiter, burn):
 
-        rangeIdsO, rangeIdsI = self.bob(whichiter, burn)
+        rangeIdsO, rangeIdsI = self.getRangeIndexes(whichiter, burn)
 
         totoF = self.F[rangeIdsI, :]
         totoC = self.C[rangeIdsI, :]
@@ -87,18 +87,18 @@ class Fractal:
             indexes_i = self.getIndexes(i)
             coordinates = totoF[indexes_i, :]
             colors_of_points = totoC[indexes_i, :]
-            package = Package(coordinates, colors_of_points, 1)
+            package = Package(coordinates, colors_of_points, 0)
             resloc, coloc = self.runAllfunctions(which_variation=i,
                                                  package=package)
 
-        package.coordinates = resloc
-        storageF = self.runAllrotations(i, package)
-        self.F[rangeIdsO[indexes_i], :] = storageF
-        self.C[rangeIdsO[indexes_i], :] = coloc
+            package.coordinates = resloc
+            storageF = self.runAllrotations(i, package)
+            self.F[rangeIdsO[indexes_i], :] = storageF
+            self.C[rangeIdsO[indexes_i], :] = coloc
 
         self.C[rangeIdsO, :] /= 2
 
-    def run(self):
+    def initialize_for_run(self):
 
         self.sumNs = self.variations_list.get_sum_Ns()
         totalSize = self.sumNs * self.fractal_parameters.niter
@@ -107,11 +107,25 @@ class Fractal:
         self.variations_list.fixProba()
         self.hmv = self.variations_list.get_len()
 
-        for i in np.arange(self.fractal_parameters.burn):
-            self.run1iter(0, True)
-        for i in np.arange(self.fractal_parameters.niter - 1):
-            self.run1iter(i, False)
+    def apply_zoom(self):
+
         self.F = self.F * self.fractal_parameters.zoom
+
+    def run_burn(self):
+
+        for _ in np.arange(self.fractal_parameters.burn):
+            self.run1iter(0, True)
+
+    def run_real(self):
+
+        for whichiter in np.arange(self.fractal_parameters.niter - 1):
+            self.run1iter(whichiter, False)
+
+    def run(self):
+        self.initialize_for_run()
+        self.run_burn()
+        self.run_real()
+        self.apply_zoom()
 
     def toScore(self, divs=4):
         print("Scoring ... ")
