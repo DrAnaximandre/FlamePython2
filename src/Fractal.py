@@ -44,20 +44,21 @@ class Fractal:
     def addVariation(self, var):
         self.variations_list.addVariation(var)
 
-
     def getIndexes(self, i):
         """ could also be a method of self.variations_list ...
         """
         snsi = self.variations_list.get_snsi(i)
         indexes_i = np.arange(snsi, snsi + self.variations_list.get_N(i))
-        return  indexes_i
+        return indexes_i
 
     def runAllfunctions(self, which_variation, package):
-
-        resloc, coloc = self.variations_list.runAllfunctions(which_variation, package)
-
-
+        resloc, coloc = self.variations_list.runAllfunctions(which_variation,
+                                                             package)
         return resloc, coloc
+
+    def runAllrotations(self, which_variation, package):
+
+        return self.variations_list.runAllrotations(which_variation, package)
 
 
 
@@ -90,8 +91,8 @@ class Fractal:
             resloc, coloc = self.runAllfunctions(which_variation = i, 
                 package=package)
 
-
-            storageF = self.variations_list[i].runAllrotations(resloc)
+            package.coordinates = resloc
+            storageF = self.runAllrotations(i, package)
             self.F[rangeIdsO[indexes_i], :] = storageF
             self.C[rangeIdsO[indexes_i], :] = coloc
 

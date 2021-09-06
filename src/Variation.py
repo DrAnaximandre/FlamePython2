@@ -34,10 +34,12 @@ class VariationsList(object):
         return self.vl[i].N
 
     def runAllfunctions(self, i, package):
-
         resloc, coloc = self.vl[i].runAllfunctions(package)
-
         return resloc, coloc
+
+    def runAllrotations(self, i, package):
+        resloc = self.vl[i].runAllrotations(package.coordinates)
+        return resloc
 
 
 class VariationParameters(object):
