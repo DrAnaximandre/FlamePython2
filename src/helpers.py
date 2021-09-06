@@ -153,7 +153,7 @@ def make_serp():
     F1.addVariation(v1)
     F1.build()
     print("Running")
-    F1.runAll()
+    F1.run()
     print("Generating the image")
     out, bitmap = F1.toImage(
         600, coef_forget=.1, optional_kernel_filtering=False)

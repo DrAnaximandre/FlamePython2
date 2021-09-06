@@ -78,7 +78,7 @@ class Fractal:
 
         self.C[rangeIdsO, :] /= 2
 
-    def runAll(self):
+    def run(self):
         for i in np.arange(self.fractal_parameters.burn):
             self.run1iter(0, True)
         for i in np.arange(self.fractal_parameters.niter - 1):
