@@ -5,9 +5,19 @@ from Variation import VariationsList
 import sys
 
 
+
+class Package(object):
+
+    
+
+
 class FractalParameters(object):
 
-    def __init__(self, burn=10, niter=30, zoom=1):
+    def __init__(self, 
+        burn=10,
+        niter=30,
+        zoom=1
+    ):
 
         self.burn = burn
         self.niter = niter
@@ -29,11 +39,18 @@ class Fractal:
 
 
     def getIndexes(self, i):
-
+        """ could also be a method of self.variations_list ...
+        """
         snsi = self.variations_list.get_snsi(i)
         indexes_i = np.arange(snsi, snsi + self.variations_list.get_N(i))
-
         return  indexes_i
+
+    def runAllfunctions(self, which_variation, package):
+
+        resloc, coloc = self.variations_list.runAllfunctions(which_variation, package)
+
+
+        return resloc, coloc
 
 
 
@@ -57,13 +74,15 @@ class Fractal:
         totoF = self.F[rangeIdsI, :]
         totoC = self.C[rangeIdsI, :]
 
-        for i in range(self.hmv):
+        for i in range(self.variations_list.get_len()):
 
             indexes_i = self.getIndexes(i)
 
+            package = Package(totoF[indexes_i, :], totoC[indexes_i, :], 1)
 
-            resloc, coloc = self.variations_list[i].runAllfunctions(
-                totoF[indexes_i, :], totoC[indexes_i, :], 1)#whichiter/self.fractal_parameters.niter)
+            resloc, coloc = self.runAllfunctions(which_variation = i, package=package)
+
+
             storageF = self.variations_list[i].runAllrotations(resloc)
             self.F[rangeIdsO[indexes_i], :] = storageF
             self.C[rangeIdsO[indexes_i], :] = coloc

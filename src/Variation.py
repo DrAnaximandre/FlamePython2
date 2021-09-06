@@ -33,6 +33,14 @@ class VariationsList(object):
         """
         return self.vl[i].N
 
+    def runAllfunctions(self, i, package):
+
+        resloc, coloc = self.vl[i].runAllfunctions(*package)
+
+        return resloc, coloc
+
+
+
 
 class VariationParameters(object):
 
