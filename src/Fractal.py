@@ -6,26 +6,22 @@ import sys
 
 class FractalParameters(object):
 
-    def __init__(self):
+    def __init__(self, burn=10, niter=30, zoom=1):
 
-        self.burn = 10
-        self.niter = 30
-        self.zoom = 1
+        self.burn = burn
+        self.niter = niter
+        self.zoom = zoom
 
 
 class Fractal:
 
     def __init__(self, fractal_parameters: FractalParameters):
 
-
         self.fractal_parameters = FractalParameters()
-        
+
         # Internals
         self.variations = []
         self.already_built = False
-        # self.Ns = []
-        # list that stores the number of points for each variation
-        
 
     def addVariation(self, var):
         self.variations.append(var)
@@ -35,7 +31,7 @@ class Fractal:
             it is not advised to add variations after a build
         '''
         if not self.already_built:
-            self.sumNs = sum([var.N.N for var in self.variations])
+            self.sumNs = sum([var.N for var in self.variations])
             totalSize = self.sumNs * self.fractal_parameters.niter
             self.F = np.random.uniform(-1, 1, size=(totalSize, 2))
             self.C = np.ones(shape=(totalSize, 3)) * 255
@@ -72,7 +68,7 @@ class Fractal:
 
         for i in range(self.hmv):
             snsi = sum([var.N.N for var in self.variations[:i]])
-            ids = np.arange(snsi, snsi + self.variations[i].N.N)  # ugh
+            ids = np.arange(snsi, snsi + self.variations[i].N)  # ugh
 
             resloc, coloc = self.variations[i].runAllfunctions(
                 totoF[ids, :], totoC[ids, :], 1)#whichiter/self.fractal_parameters.niter)

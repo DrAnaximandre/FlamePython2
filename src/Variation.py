@@ -5,7 +5,7 @@ from utils import rotation
 
 class VariationParameters(object):
 
-    def __init__(self, N = 100000):
+    def __init__(self, N=10000):
 
         self.N = N
 

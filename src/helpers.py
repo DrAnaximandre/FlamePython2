@@ -136,18 +136,15 @@ def make_gray_serp():
 
 
 def make_serp():
-    print("init serp triangle")
-    burn = 20
-    niter = 50
-    zoom = 1
-    N = 5000
+
+    my_fractal_parameters = FractalParameters()
+    F1 = Fractal(my_fractal_parameters)
 
     a1 = np.array([0, 1, 0, 0, 0, 1])
     a2 = np.array([1, 1, 0, 0, 0, 1])
     a3 = np.array([0, 1, 0, 1, 0, 1])
 
-    F1 = Fractal(burn, niter, zoom)
-
+    N = 5000
     v1 = Variation(N)
     v1.addFunction([.5], a1, [linear], .5, [255, 0, 0])
     v1.addFunction([.5], a2, [linear], .25, [0, 255, 0])
@@ -160,7 +157,7 @@ def make_serp():
     print("Generating the image")
     out, bitmap = F1.toImage(
         600, coef_forget=.1, optional_kernel_filtering=False)
-    out.save("serp.png")
+    out.save("../images/serp.png")
 
 
 def big_thingy():
@@ -261,4 +258,4 @@ def make_mess():
 
 
 if __name__ == '__main__':
-    big_thingy()
+    make_serp()
