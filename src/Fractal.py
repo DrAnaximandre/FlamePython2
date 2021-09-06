@@ -1,6 +1,7 @@
 from utils import *
 import numpy as np
 from PIL import Image, ImageFilter
+from Variation import VariationsList
 import sys
 
 
@@ -15,38 +16,28 @@ class FractalParameters(object):
 
 class Fractal:
 
-    def __init__(self, fractal_parameters: FractalParameters):
+    def __init__(self, 
+        fractal_parameters: FractalParameters,
+        variations_list: VariationsList
+        ):
 
-        self.fractal_parameters = FractalParameters()
-
-        # Internals
-        self.variations = []
-        self.already_built = False
+        self.fractal_parameters = fractal_parameters
+        self.variations_list = variations_list
 
     def addVariation(self, var):
-        self.variations.append(var)
+        self.variations_list.addVariation(var)
 
-    def build(self):
-        '''
-            it is not advised to add variations after a build
-        '''
-        if not self.already_built:
-            self.sumNs = sum([var.N for var in self.variations])
-            totalSize = self.sumNs * self.fractal_parameters.niter
-            self.F = np.random.uniform(-1, 1, size=(totalSize, 2))
-            self.C = np.ones(shape=(totalSize, 3)) * 255
-            [v.fixProba() for v in self.variations]
-            self.hmv = len(self.variations)
-            self.already_built = True
 
-        else:
-            print("You have already built this Fractale")
+    def getIndexes(self, i):
+
+        snsi = self.variations_list.get_snsi(i)
+        indexes_i = np.arange(snsi, snsi + self.variations_list.get_N(i))
+
+        return  indexes_i
+
+
 
     def run1iter(self, whichiter, burn):
-        # safety checkz
-        if not self.already_built:
-            print("you are trying to run a Fractale not built")
-            sys.exit()
 
         a = self.sumNs * whichiter
         b = self.sumNs * (whichiter + 1)
@@ -67,18 +58,27 @@ class Fractal:
         totoC = self.C[rangeIdsI, :]
 
         for i in range(self.hmv):
-            snsi = sum([var.N.N for var in self.variations[:i]])
-            ids = np.arange(snsi, snsi + self.variations[i].N)  # ugh
 
-            resloc, coloc = self.variations[i].runAllfunctions(
-                totoF[ids, :], totoC[ids, :], 1)#whichiter/self.fractal_parameters.niter)
-            storageF = self.variations[i].runAllrotations(resloc)
-            self.F[rangeIdsO[ids], :] = storageF
-            self.C[rangeIdsO[ids], :] = coloc
+            indexes_i = self.getIndexes(i)
+
+
+            resloc, coloc = self.variations_list[i].runAllfunctions(
+                totoF[indexes_i, :], totoC[indexes_i, :], 1)#whichiter/self.fractal_parameters.niter)
+            storageF = self.variations_list[i].runAllrotations(resloc)
+            self.F[rangeIdsO[indexes_i], :] = storageF
+            self.C[rangeIdsO[indexes_i], :] = coloc
 
         self.C[rangeIdsO, :] /= 2
 
     def run(self):
+
+        self.sumNs = self.variations_list.get_sum_Ns()
+        totalSize = self.sumNs * self.fractal_parameters.niter
+        self.F = np.random.uniform(-1, 1, size=(totalSize, 2))
+        self.C = np.ones(shape=(totalSize, 3)) * 255
+        self.variations_list.fixProba()
+        self.hmv = self.variations_list.get_len()
+
         for i in np.arange(self.fractal_parameters.burn):
             self.run1iter(0, True)
         for i in np.arange(self.fractal_parameters.niter - 1):

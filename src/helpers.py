@@ -3,7 +3,7 @@ from Fractal import Fractal, FractalParameters
 from Additives import linear, bubble, swirl,pdj, spherical, sinmoche
 import matplotlib.pyplot as plt
 from quizz import quizz
-from Variation import Variation, VariationParameters
+from Variation import Variation, VariationParameters, VariationsList
 
 
 import PIL.ImageOps as pops
@@ -138,7 +138,7 @@ def make_gray_serp():
 def make_serp():
 
     my_fractal_parameters = FractalParameters()
-    F1 = Fractal(my_fractal_parameters)
+
 
     a1 = np.array([0, 1, 0, 0, 0, 1])
     a2 = np.array([1, 1, 0, 0, 0, 1])
@@ -150,8 +150,9 @@ def make_serp():
     v1.addFunction([.5], a2, [linear], .25, [0, 255, 0])
     v1.addFunction([.5], a3, [linear], .25, [0, 0, 255])
 
-    F1.addVariation(v1)
-    F1.build()
+    VL = VariationsList(v1)
+
+    F1 = Fractal(my_fractal_parameters, VL)    
     print("Running")
     F1.run()
     print("Generating the image")

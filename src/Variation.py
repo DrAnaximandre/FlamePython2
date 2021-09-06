@@ -3,6 +3,37 @@ from Function import Function
 from utils import rotation
 
 
+class VariationsList(object):
+
+    def __init__(self, v1):
+        self.vl = [v1]
+
+    def addVariation(self, v1):
+        self.vl.append(v1)
+
+    def get_sum_Ns(self):
+        sumNs = np.sum([var.N for var in self.vl])
+        return sumNs
+
+    def fixProba(self):
+        [v.fixProba() for v in self.vl]
+
+    def get_len(self):
+        return len(self.vl)
+
+    def get_snsi(self, i):
+        """ Get the sum of the Ns for all variations until index i.
+        """
+
+        snsi = sum([var.N for var in self.vl[:i]])
+        return(snsi)
+
+    def get_N(self, i):
+        """ Get the N for variation at index i.
+        """
+        return self.vl[i].N
+
+
 class VariationParameters(object):
 
     def __init__(self, N=10000):
@@ -12,6 +43,7 @@ class VariationParameters(object):
     def __str__(self):
 
         return(f"{self.N}")
+
 
 class Variation:
     '''
