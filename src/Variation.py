@@ -35,11 +35,9 @@ class VariationsList(object):
 
     def runAllfunctions(self, i, package):
 
-        resloc, coloc = self.vl[i].runAllfunctions(*package)
+        resloc, coloc = self.vl[i].runAllfunctions(package)
 
         return resloc, coloc
-
-
 
 
 class VariationParameters(object):
@@ -133,7 +131,7 @@ class Variation:
             raise ValueError(
                 "This variation is locked, I cannot add the rotation")
 
-    def runAllfunctions(self, coordinates, batchpointsC, random_tr=0.5):
+    def runAllfunctions(self, package):
         """ Calls all the functions (including the final if it exists).
 
             Parameters:
@@ -145,7 +143,7 @@ class Variation:
                 it should scale between 0 and 255
 
         """
-        Nloc = coordinates.shape[0]  # how many points in the batch
+        Nloc = package.coordinates.shape[0]  # how many points in the batch
         r = np.random.uniform(size=Nloc)  # each point is attributed a rand
         resF = np.zeros(shape=(Nloc, 2))  # creation of the empty results
         resC = np.zeros(shape=(Nloc, 3))
@@ -158,10 +156,10 @@ class Variation:
             sel = np.where((mask1) & (mask2))[0]
             # then we call the function on the slice. The whole process could
             # be parallelized since we work on slices, but it's quite quick
-            resF[sel, :] = self.functions[i].call(coordinates[sel, :])
+            resF[sel, :] = self.functions[i].call(package.coordinates[sel, :])
             # then we blend the color of the points with the color of the
             # function by averaging them
-            resC[sel, :] = batchpointsC[sel, :] + self.cols[i]
+            resC[sel, :] = package.batchpointC[sel, :] + self.cols[i]
 
         if self.final:
             # if the variation has a final function, it is applied on
@@ -171,7 +169,7 @@ class Variation:
 
 
             r = np.random.uniform(size=Nloc) 
-            bob = np.where(r>random_tr)[0]
+            bob = np.where(r>packages.random_tr)[0]
 
             resF[bob] = self.final.call(resF[bob])
         return(resF, resC)

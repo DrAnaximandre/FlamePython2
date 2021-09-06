@@ -8,7 +8,14 @@ import sys
 
 class Package(object):
 
-    
+    def __init__(self,
+        coordinates, 
+        batchpointC,
+        random_tr):
+        
+        self.coordinates = coordinates
+        self.batchpointC = batchpointC
+        self.random_tr = random_tr
 
 
 class FractalParameters(object):
@@ -77,10 +84,11 @@ class Fractal:
         for i in range(self.variations_list.get_len()):
 
             indexes_i = self.getIndexes(i)
-
-            package = Package(totoF[indexes_i, :], totoC[indexes_i, :], 1)
-
-            resloc, coloc = self.runAllfunctions(which_variation = i, package=package)
+            coordinates = totoF[indexes_i, :]
+            colors_of_points = totoC[indexes_i, :]
+            package = Package(coordinates, colors_of_points, 1)
+            resloc, coloc = self.runAllfunctions(which_variation = i, 
+                package=package)
 
 
             storageF = self.variations_list[i].runAllrotations(resloc)
