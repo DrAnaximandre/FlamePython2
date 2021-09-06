@@ -4,10 +4,10 @@ from utils import rotation
 
 
 class VariationParameters(object):
-    
-    def __init__(self):
 
-        self.N = 5000
+    def __init__(self, N = 100000):
+
+        self.N = N
 
     def __str__(self):
 
@@ -93,7 +93,7 @@ class Variation:
             raise ValueError(
                 "This variation is locked, I cannot add the rotation")
 
-    def runAllfunctions(self, coordinates, batchpointsC):
+    def runAllfunctions(self, coordinates, batchpointsC, random_tr=0.5):
         """ Calls all the functions (including the final if it exists).
 
             Parameters:
@@ -128,7 +128,12 @@ class Variation:
             # every point of resF.
             # note that the final function has no color thus it does not modify
             # resC.
-            resF = self.final.call(resF)
+
+
+            r = np.random.uniform(size=Nloc) 
+            bob = np.where(r>random_tr)[0]
+
+            resF[bob] = self.final.call(resF[bob])
         return(resF, resC)
 
     def runAllrotations(self, resF):

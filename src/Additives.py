@@ -32,7 +32,7 @@ def Rsinmoche(x, y):
 
 
 def spherical(x, y):
-    r = 0.001
+    r = 0.1
     omega = np.arctan((x + r) / (y + r))
     r = np.sqrt(x * x + y * y)
     return(np.column_stack((np.sin(np.pi * r) * omega / np.pi,
@@ -52,6 +52,11 @@ def expinj(x, y):
     yy = np.exp(-y * y)
     return(np.column_stack((xx, yy)))
 
+
+def Wexpinj(x, y):
+    xx = np.maximum(0.99, np.exp(y - x*x))
+    yy = np.maximum(0.7, np.exp(x- y*y))
+    return(np.column_stack((xx, yy)))
 
 def Rexpinj(x, y):
     xx = np.exp(-x * x - np.random.rand())
