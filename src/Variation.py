@@ -4,6 +4,8 @@ from utils import rotation
 
 
 class VariationsList(object):
+    """ An ordered collection of Variations objects.
+    """
 
     def __init__(self, v1):
         self.vl = [v1]
@@ -24,7 +26,6 @@ class VariationsList(object):
     def get_snsi(self, i):
         """ Get the sum of the Ns for all variations until index i.
         """
-
         snsi = sum([var.N for var in self.vl[:i]])
         return(snsi)
 
@@ -40,17 +41,6 @@ class VariationsList(object):
     def runAllrotations(self, i, package):
         resloc = self.vl[i].runAllrotations(package.coordinates)
         return resloc
-
-
-class VariationParameters(object):
-
-    def __init__(self, N=10000):
-
-        self.N = N
-
-    def __str__(self):
-
-        return(f"{self.N}")
 
 
 class Variation:
@@ -72,7 +62,7 @@ class Variation:
         the cumulative probability to have each of the functions.
     '''
 
-    def __init__(self, N: VariationParameters):
+    def __init__(self, N: int):
         self.Nfunctions = 0  # the number of functions in the Variation
         self.functions = []  # a list where the functions are stored
         self.vproba = [0]  # a list of probabilities, see doc
@@ -168,10 +158,8 @@ class Variation:
             # every point of resF.
             # note that the final function has no color thus it does not modify
             # resC.
-
-
-            r = np.random.uniform(size=Nloc) 
-            bob = np.where(r>packages.random_tr)[0]
+            r = np.random.uniform(size=Nloc)
+            bob = np.where(r > package.random_tr)[0]
 
             resF[bob] = self.final.call(resF[bob])
         return(resF, resC)

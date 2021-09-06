@@ -2,17 +2,15 @@ from utils import *
 import numpy as np
 from PIL import Image, ImageFilter
 from Variation import VariationsList
-import sys
-
 
 
 class Package(object):
 
     def __init__(self,
-        coordinates, 
-        batchpointC,
-        random_tr):
-        
+                 coordinates,
+                 batchpointC,
+                 random_tr):
+
         self.coordinates = coordinates
         self.batchpointC = batchpointC
         self.random_tr = random_tr
@@ -20,11 +18,11 @@ class Package(object):
 
 class FractalParameters(object):
 
-    def __init__(self, 
-        burn=10,
-        niter=30,
-        zoom=1
-    ):
+    def __init__(self,
+                 burn=10,
+                 niter=30,
+                 zoom=1
+                 ):
 
         self.burn = burn
         self.niter = niter
@@ -33,10 +31,10 @@ class FractalParameters(object):
 
 class Fractal:
 
-    def __init__(self, 
-        fractal_parameters: FractalParameters,
-        variations_list: VariationsList
-        ):
+    def __init__(self,
+                 fractal_parameters: FractalParameters,
+                 variations_list: VariationsList
+                 ):
 
         self.fractal_parameters = fractal_parameters
         self.variations_list = variations_list
@@ -44,11 +42,15 @@ class Fractal:
     def addVariation(self, var):
         self.variations_list.addVariation(var)
 
-    def getIndexes(self, i):
+    def getIndexes(self, which_variation):
         """ could also be a method of self.variations_list ...
         """
-        snsi = self.variations_list.get_snsi(i)
-        indexes_i = np.arange(snsi, snsi + self.variations_list.get_N(i))
+        snsi = self.variations_list.get_snsi(which_variation)
+        first_index = snsi
+        N_variation_i = self.variations_list.get_N(which_variation)
+        second_index = snsi + N_variation_i
+        indexes_i = np.arange(first_index,
+                              second_index)
         return indexes_i
 
     def runAllfunctions(self, which_variation, package):
@@ -60,10 +62,7 @@ class Fractal:
 
         return self.variations_list.runAllrotations(which_variation, package)
 
-
-
-    def run1iter(self, whichiter, burn):
-
+    def bob(self, whichiter, burn):
         a = self.sumNs * whichiter
         b = self.sumNs * (whichiter + 1)
         c = self.sumNs * (whichiter + 2)
@@ -73,11 +72,12 @@ class Fractal:
         else:
             rangeIdsO = np.arange(b, c)
 
-        # safety check
-        if len(rangeIdsI) != self.sumNs:
-            print("the number of indices provided is different" +
-                  "from the number of points in one image")
-            sys.exit()
+        assert len(rangeIdsI) == self.sumNs
+        return rangeIdsO, rangeIdsI
+
+    def run1iter(self, whichiter, burn):
+
+        rangeIdsO, rangeIdsI = self.bob(whichiter, burn)
 
         totoF = self.F[rangeIdsI, :]
         totoC = self.C[rangeIdsI, :]
@@ -88,13 +88,13 @@ class Fractal:
             coordinates = totoF[indexes_i, :]
             colors_of_points = totoC[indexes_i, :]
             package = Package(coordinates, colors_of_points, 1)
-            resloc, coloc = self.runAllfunctions(which_variation = i, 
-                package=package)
+            resloc, coloc = self.runAllfunctions(which_variation=i,
+                                                 package=package)
 
-            package.coordinates = resloc
-            storageF = self.runAllrotations(i, package)
-            self.F[rangeIdsO[indexes_i], :] = storageF
-            self.C[rangeIdsO[indexes_i], :] = coloc
+        package.coordinates = resloc
+        storageF = self.runAllrotations(i, package)
+        self.F[rangeIdsO[indexes_i], :] = storageF
+        self.C[rangeIdsO[indexes_i], :] = coloc
 
         self.C[rangeIdsO, :] /= 2
 
@@ -155,7 +155,7 @@ class Fractal:
             print("    number of points in the image: " + str(len(goods)))
 
         bitmap, intensity = renderImage(
-            F_loc, self.C, bitmap,intensity, goods, coef_forget)
+            F_loc, self.C, bitmap, intensity, goods, coef_forget)
 
         nmax = np.amax(intensity)
         if verbose > 0:
@@ -163,7 +163,8 @@ class Fractal:
         intensity = np.power(np.log(intensity + 1
                                     ) / np.log(nmax + 1), coef_intensity)
 
-        bitmap = np.uint8(bitmap * np.reshape(np.repeat(intensity,3), (sizeImage,sizeImage,3)))
+        bitmap = np.uint8(
+            bitmap * np.reshape(np.repeat(intensity, 3), (sizeImage, sizeImage, 3)))
 
         out = Image.fromarray(bitmap)
 
@@ -178,6 +179,8 @@ class Fractal:
             out = out.filter(supsammpK)
 
         return(out, bitmap)
+
+
 if __name__ == '__main__':
 
     from helpers import *

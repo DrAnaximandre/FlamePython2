@@ -3,7 +3,7 @@ from Fractal import Fractal, FractalParameters
 from Additives import linear, bubble, swirl,pdj, spherical, sinmoche
 import matplotlib.pyplot as plt
 from quizz import quizz
-from Variation import Variation, VariationParameters, VariationsList
+from Variation import Variation, VariationsList
 
 
 import PIL.ImageOps as pops
@@ -144,7 +144,7 @@ def make_serp():
     a2 = np.array([1, 1, 0, 0, 0, 1])
     a3 = np.array([0, 1, 0, 1, 0, 1])
 
-    N = 5000
+    N = 50000
     v1 = Variation(N)
     v1.addFunction([.5], a1, [linear], .5, [255, 0, 0])
     v1.addFunction([.5], a2, [linear], .25, [0, 255, 0])
