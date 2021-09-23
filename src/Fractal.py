@@ -1,5 +1,6 @@
 from utils import *
 import numpy as np
+
 from PIL import Image, ImageFilter
 from Variation import VariationsList
 
@@ -102,8 +103,8 @@ class Fractal:
 
         self.sumNs = self.variations_list.get_sum_Ns()
         totalSize = self.sumNs * self.fractal_parameters.niter
-        self.F = np.random.uniform(-1, 1, size=(totalSize, 2))
-        self.C = np.ones(shape=(totalSize, 3)) * 255
+        self.F = np.random.uniform(-1, 1, size=(totalSize, 2)).astype(np.float32)
+        self.C = np.ones(shape=(totalSize, 3), dtype="float32") * 255
         self.variations_list.fixProba()
         self.hmv = self.variations_list.get_len()
 
