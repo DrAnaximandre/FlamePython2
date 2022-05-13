@@ -128,8 +128,6 @@ class Variation:
             # every point of resF.
             # note that the final function has no color thus it does not modify
             # resC.
-
-
             r = np.random.uniform(size=Nloc) 
             bob = np.where(r>random_tr)[0]
 
