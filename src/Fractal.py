@@ -1,16 +1,19 @@
 from utils import *
 import numpy as np
 from PIL import Image, ImageFilter
-import sys
 from typing import List
+
 
 class FractalParameters(object):
 
-    def __init__(self, burn=5, niter=25, zoom=1):
+    def __init__(self, burn=5, niter=25, zoom=1, dx=0.0, dy=0.0, final_rot=np.pi/2):
 
         self.burn = burn 
         self.niter = niter
         self.zoom = zoom
+        self.dx = dx
+        self.dy = dy
+        self.final_rot = final_rot
 
 class Fractal:
 
@@ -51,10 +54,8 @@ class Fractal:
         for i in range(self.hmv):
             snsi = sum([var.N for var in self.variations[:i]])
             ids = np.arange(snsi, snsi + self.variations[i].N)  # ugh
-
-
             resloc, coloc = self.variations[i].runAllfunctions(
-                totoF[ids, :], totoC[ids, :], 1)#whichiter/self.fractal_parameters.niter)
+                totoF[ids, :], totoC[ids, :], 0)#whichiter/self.fractal_parameters.niter)
             storageF = self.variations[i].runAllrotations(resloc)
             self.F[rangeIdsO[ids], :] = storageF
             self.C[rangeIdsO[ids], :] = coloc
@@ -79,6 +80,17 @@ class Fractal:
         imgtemp = Image.new('RGB', (sizeImage, sizeImage), "black")
         bitmap = np.array(imgtemp).astype(np.float)
         intensity = np.zeros((sizeImage, sizeImage))
+
+        ## applying offset at the Fractal level
+        self.F[:, 0] += self.fractal_parameters.dx
+        self.F[:, 1] += self.fractal_parameters.dy
+
+        # ## rotating the Fractal
+        self.F = utils.rotation(1,
+                          self.fractal_parameters.final_rot,
+                          self.F,
+                          np.random.uniform(size=self.F.shape[0]))
+
 
         F_loc = (sizeImage * (self.F + 1) / 2).astype("i2")
 
