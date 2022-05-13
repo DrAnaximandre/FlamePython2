@@ -1,10 +1,9 @@
 import numpy as np
 from Fractal import Fractal, FractalParameters
 from Additives import linear, bubble, swirl,pdj, spherical, sinmoche
-import matplotlib.pyplot as plt
 from quizz import quizz
 from Variation import Variation, VariationParameters
-
+from typing import Tuple
 
 import PIL.ImageOps as pops
 
@@ -262,5 +261,442 @@ def make_mess():
     out.save("mess.png")
 
 
+def morning_fractal(i=0,save=True):
+    print("Morning fractal")
+    burn = 20
+    niter = 50
+    zoom = 1
+    N = 100000
+
+    a1 = np.array([-0.105+0.6, 1, -0.1, 0.2, 0, 0.7+0.7*1.05])
+    a2 = np.array([1, 0.5+0.7, -0.1, 0.2, 0.2, -2+0.6])
+    a3 = np.array([-1+0.005, 1, -0.1, -2+0.4*3+0.05, 0, 1])
+
+    v1 = Variation(N)
+    v1.addFunction([.5,0.25], a1, [linear, swirl], .25, [255, 0, 0])
+    v1.addFunction([.5,(1-1.2+0.9/10)**(i+1)], a2, [linear,bubble], .25, [218,165,32])
+    v1.addFunction([.5, -(1-0.9)/10-0.5-0.1+0.6/10], a3, [linear,swirl], .25, [176, 48, 96])
+
+    F1P = FractalParameters(burn, niter, zoom)
+    F1 = Fractal(F1P, [v1])
+
+    print("Running")
+    F1.run()
+    print("Generating the image")
+    out, bitmap = F1.toImage(
+        1280,
+        coef_forget=0.3,
+        coef_intensity=0.6,
+        optional_kernel_filtering=False)
+    if save:
+        out.save(f"morning_fractal_finalii_1{i}.png")
+
+def aftervening_fractal(i=0,save=True):
+    print("Aftervening fractal")
+    burn = 20
+    niter = 50
+    zoom = 1
+    N = 100000
+
+    a1 = np.array([1,0.2,1,-1,0.5,-0.5])
+    a2 = np.array([-1,1,1,-1.5,1,1])
+    a3 = np.array([0.2, 1.5, -0.1, -0.75, 0.07, 1])
+    a4 = np.array([0.5,0.5-0.2,2*np.sin(i*np.pi*2),0.5,-0.5,1])
+
+    v1 = Variation(N)
+    v1.addFunction([.15], a1, [linear], .25, tuple(int("E2F20D"[j:j+2], 16) for j in (0, 2, 4)))
+    v1.addFunction([.25,0.6], a2, [linear,bubble], .25, tuple(int("0DF290"[j:j+2], 16) for j in (0, 2, 4)))
+    v1.addFunction([.5*0.2,1], a3, [linear, spherical], .25, tuple(int("1D0DF2"[j:j+2], 16) for j in (0, 2, 4)))
+    v1.addFunction([.8+3,2], a4, [swirl, linear], .25*i, tuple(int("F20D6F"[j:j + 2], 16) for j in (0, 2, 4)))
+    v1.addRotation((12,i*2*np.pi,0.75))
+
+    v1.addFinal([0.02
+                    ,0.6],(a1+a2+a3+a4)*np.sin(i*np.pi*2)/2+0.1,[spherical, linear])
+
+    F1P = FractalParameters(burn, niter, zoom)
+    F1 = Fractal(F1P, [v1])
+
+    print("Running")
+    F1.run()
+    print("Generating the image")
+    out, bitmap = F1.toImage(
+        1280,
+        coef_forget=0.3,
+        coef_intensity=0.6,
+        optional_kernel_filtering=False)
+    if save:
+        out.save(f"aftervening_movie_u{i*400}.png")
+
+
+def get_RGB_from_hex(hex: str) -> Tuple[int]:
+    return tuple(int(hex[j:j + 2], 16) for j in (0, 2, 4))
+
+def swirl_second(i=0,save=True):
+    print("Test dx dy")
+    burn = 20
+    niter = 50
+    zoom = 1
+    N = 25000
+
+    a1 = np.array([0, 1, 0, 0, 0, 1])
+    a2 = np.array([1, 1, 0,  0, 0, 1])
+    a3 = np.array([0, 1,  0, 1, 0, 1])
+    a5 = np.array([-1, 1,  0, 0, 0, 1])
+    a8 = np.array([-1, 1,  0, 0, 0, 1])
+    a9 = np.array([0, 1, 0, -1, 0, 1])
+
+    v1 = Variation(N)
+    v1.addFunction([.5, 0.25*np.sin(i*np.pi*2)], a1, [linear, swirl], .25, [210,10,60])
+    v1.addFunction([.5], a2, [linear], .25, get_RGB_from_hex("DDAA22"))
+    v1.addFunction([.5,0.25*(1-np.cos(i*np.pi*2))], a3, [linear, swirl], .25, get_RGB_from_hex("22DDAA"))
+
+    v2 = Variation(N)
+    v2.addFunction([.5], a1, [linear], .25, [210, 10, 60])
+    v2.addFunction([.5, 0.25*(1-np.cos(i*np.pi*4))], a5, [linear, swirl], .25, get_RGB_from_hex("DDAA22"))
+    v2.addFunction([.5, 0.5*np.sin(i*np.pi*2)], a3, [linear, swirl], .25, get_RGB_from_hex("22DDAA"))
+
+    v3 = Variation(N)
+    v3.addFunction([.5, 0.5*(1-np.cos(i*np.pi*2))], a1, [linear, swirl], .25, [210, 10, 60])
+    v3.addFunction([.5], a8, [linear], .25, get_RGB_from_hex("DDAA22"))
+    v3.addFunction([.5, 0.25*np.sin(i*np.pi*2)], a9, [linear, swirl], .25, get_RGB_from_hex("22DDAA"))
+
+    v4 = Variation(N)
+    v4.addFunction([.5,0.5*np.sin(i*np.pi*2)], a1, [linear, swirl], .25, [210, 10, 60])
+    v4.addFunction([.5], a2, [linear], .25, get_RGB_from_hex("DDAA22"))
+    v4.addFunction([.5, 0.25*(1-np.cos(i*np.pi*4))], a9, [linear, swirl], .25, get_RGB_from_hex("22DDAA"))
+
+    F1P = FractalParameters(burn, niter, zoom, 0.0, 0.0, -np.pi*2*i)
+    F1 = Fractal(F1P, [v1, v2, v3, v4])
+
+    print("Running")
+    F1.run()
+    print("Generating the image")
+    out, bitmap = F1.toImage(
+        1280,
+        coef_forget=0.3,
+        coef_intensity=0.6,
+        optional_kernel_filtering=False)
+    if save:
+        out.save(f"second_test_swirl{i*400}.png")
+
+
+def bubble_again(i=0,save=True):
+    name = "bubble-roar-second"
+
+    burn = 20
+    niter = 50
+    zoom = 1
+    N = 25000
+
+    a1 = np.array([0, 1, 0.25*(1-np.cos(i*np.pi*4)), 0, 0, 1])
+    a2 = np.array([1, 1, 0,  0.25*(1-np.cos(i*np.pi*8)), 0, 1])
+    a3 = np.array([0, 1,  0, 1, 0, 1])
+    a5 = np.array([-1, 1,  0, 0, 0, 1])
+    a8 = np.array([-1, 1,  0, 0, 0, 1])
+    a9 = np.array([0, 1, 0.25*(1-np.cos(i*np.pi*4)), -1, 0, 1])
+
+    z_ = (1+np.cos(i*np.pi*4))/2
+    zf_ = (1 + np.cos(i * np.pi * 2)) / 2
+    o_ = (1 + np.sin(i * np.pi * 2)) / 2
+
+
+    v1 = Variation(N)
+    v1.addFunction([.5, 0.25*np.sin(i*np.pi*2)], a1, [linear, bubble], .25, [152,78,255*z_])
+    v1.addFunction([.5], a2, [linear], .25, [240,78,255])
+    v1.addFunction([.5,0.25*(1-np.cos(i*np.pi*2))], a3, [linear, bubble], .25, [78,108,255])
+
+    v2 = Variation(N)
+    v2.addFunction([.5], a1, [linear], .25, [152,78,255])
+    v2.addFunction([.5, 0.25*(1-np.cos(i*np.pi*4))], a5, [linear, bubble], .25, [240,78,255])
+    v2.addFunction([.5, 0.5*np.sin(i*np.pi*2)], a3, [linear, bubble], .25, [78,108*zf_ ,220])
+
+    v3 = Variation(N)
+    v3.addFunction([.5, 0.5*(1-np.cos(i*np.pi*2))], a1, [linear, spherical], .25, [152,78*z_,255])
+    v3.addFunction([.5], a8, [linear], .25, [240,78,255*zf_])
+    v3.addFunction([.5, 0.25*np.sin(i*np.pi*2)], a9, [linear, spherical], .25, [78*z_ ,108*2*o_,200])
+
+    v4 = Variation(N)
+    v4.addFunction([.5,0.5*np.sin(i*np.pi*2)], a1, [linear, bubble], .25, [152,78,255*zf_])
+    v4.addFunction([.5], a2, [linear], .25, [240,78*z_*z_,255])
+    v4.addFunction([.5, 0.25*(1-np.cos(i*np.pi*4))], a9, [linear, bubble], .25, [78,108,210])
+
+    F1P = FractalParameters(burn, niter, zoom, 0.0, 0.0, 2*np.pi*2*i)
+    F1 = Fractal(F1P, [v1, v2, v3, v4])
+
+    print("Running")
+    F1.run()
+    print("Generating the image")
+    out, bitmap = F1.toImage(
+        1280,
+        coef_forget=0.3,
+        coef_intensity=0.6,
+        optional_kernel_filtering=False)
+    if save:
+        out.save(f"{name}-{i*500}.png")
+
+def mixedbag(i=0, save=True):
+    name = "mixedbag"
+
+    burn = 20
+    niter = 50
+    zoom = 1
+    N = 25000
+
+    a1 = np.array([0, 1, 0.25 * (1 - np.cos(i * np.pi * 4)), 0, 0, 1])
+    a2 = np.array([1, 1, 0, 0.25 * (1 - np.cos(i * np.pi * 8)), 0, 1])
+    a3 = np.array([0, 1, 0, 1, 0, 1])
+    a5 = np.array([-1, 1, 0, 0, 0, 1])
+    a8 = np.array([-1, 1, 0, 0, 0, 1])
+    a9 = np.array([0, 1, 0.25 * (1 - np.cos(i * np.pi * 4)), -1, 0, 1])
+
+    z_ = (1 + np.cos(i * np.pi * 4)) / 2
+    zf_ = (1 + np.cos(i * np.pi * 2)) / 2
+    o_ = (1 + np.sin(i * np.pi * 2)) / 2
+
+    c1 = [c*1.5 for c in [39, 25, 130]]
+    c2 = [c*1.5 for c in [128, 115, 43]]
+    c3 = [c*1.5 for c in [128, 73, 43]]
+
+    v1 = Variation(N)
+    v1.addFunction([.5, 0.25 * np.sin(i * np.pi * 2)], -a1, [linear, bubble], .25, [c*z_ for c in c1])
+    v1.addFunction([.5], -a2, [linear], .25, c2)
+    v1.addFunction([.5, 0.25 * (1 - np.cos(i * np.pi * 2))], -a3, [linear, swirl], .25, c3)
+
+    v2 = Variation(N)
+    v2.addFunction([.5], -a1, [linear], .25, c2)
+    v2.addFunction([.5, 0.25 * (1 - np.cos(i * np.pi * 4))], -a5, [linear, bubble], .25, c1)
+    v2.addFunction([.5, 0.5 * np.sin(i * np.pi * 2)], -a3, [linear, spherical], .25, [c3[i]*z_ if i ==0 else c3[i] for i in range(3)])
+
+    v3 = Variation(N)
+    v3.addFunction([.5, 0.5 * (1 - np.cos(i * np.pi * 2))], -a1, [linear, spherical], .25, [c2[i]*zf_ if i==1 else c2[i] for i in range(3)])
+    v3.addFunction([.5], -a8, [linear], .25,  [c2[i]*o_ if i==2 else c2[i] for i in range(3)])
+    v3.addFunction([.5, 0.25 * np.sin(i * np.pi * 2)], -a9, [linear, swirl], .25, c1)
+
+    v4 = Variation(N)
+    v4.addFunction([.5, 0.5 * np.sin(i * np.pi * 2)], -a1, [linear, swirl], .25, [c*z_ for c in c3])
+    v4.addFunction([.5], -a2, [linear], .25,  [c1[i]*o_ if i==0 else c1[i] for i in range(3)])
+    v4.addFunction([.5, 0.25 * (1 - np.cos(i * np.pi * 4))], -a9, [linear, bubble], .25, c2)
+
+    F1P = FractalParameters(burn, niter, zoom, 0.0, 0.0, 2 * np.pi * 2 * i)
+    F1 = Fractal(F1P, [v1, v2, v3, v4])
+
+    print("Running")
+    F1.run()
+    print("Generating the image")
+    out, bitmap = F1.toImage(
+        1280,
+        coef_forget=0.3,
+        coef_intensity=0.6,
+        optional_kernel_filtering=False)
+    if save:
+        out.save(f"{name}-{i * 1000}.png")
+
+
+
+def contrary_motion(i=0, save=True):
+    name = "cm"
+
+    burn = 20
+    niter = 50
+    zoom = 1
+    N = 25000
+
+    a1 = np.array([0, 1, 0.25 * (1 - np.cos(i * np.pi * 4)), 0, 0, 1])
+    a2 = np.array([1, 1, 0, 0.25 * (1 - np.cos(i * np.pi * 8)), 0, 1])
+    a3 = np.array([0, 1, 0, 1, 0, 1])
+    a5 = np.array([-1, 1, 0, 0, 0, 1])
+    a8 = np.array([-1, 1, 0, 0, 0, 1])
+    a9 = np.array([0, 1, 0.25 * (1 - np.cos(i * np.pi * 4)), -1, 0, 1])
+
+    z_ = (1 + np.cos(i * np.pi * 4)) / 2
+    zf_ = (1 + np.cos(i * np.pi * 2)) / 2
+    o_ = (1 + np.sin(i * np.pi * 2)) / 2
+
+    c1 =  [91, 206, 250]
+    c2 = [245, 169, 184]
+    c3 =  [255, 255, 255]
+
+    v1 = Variation(N)
+    v1.addFunction([.5, 0.25 * np.sin(i * np.pi * 2)], -a1, [linear, bubble], .25, [c*z_ for c in c1])
+    v1.addFunction([.5], -a2, [linear], .25, c2)
+    v1.addFunction([.5, 0.25 * (1 - np.cos(i * np.pi * 2))], -a3, [linear, swirl], .25, c3)
+    v1.addRotation((1,np.pi * 2 * i,1))
+
+    v2 = Variation(N)
+    v2.addFunction([.5], -a1, [linear], .25, c2)
+    v2.addFunction([.5, 0.25 * (1 - np.cos(i * np.pi * 4))], -a5, [linear, bubble], .25, c1)
+    v2.addFunction([.5, 0.5 * np.sin(i * np.pi * 2)], -a3, [linear, spherical], .25, [c3[i]*z_ if i ==0 else c3[i] for i in range(3)])
+    v2.addRotation((1, -np.pi * 2 * i, 1))
+
+
+    v3 = Variation(N)
+    v3.addFunction([.5, 0.5 * (1 - np.cos(i * np.pi * 2))], -a1, [linear, spherical], .25, [c2[i]*zf_ if i==1 else c2[i] for i in range(3)])
+    v3.addFunction([.5], -a8, [linear], .25,  [c2[i]*o_ if i==2 else c2[i] for i in range(3)])
+    v3.addFunction([.5, 0.25 * np.sin(i * np.pi * 2)], -a9, [linear, swirl], .25, c1)
+    v3.addRotation((1,np.pi * 4 * i,1))
+
+
+    v4 = Variation(N)
+    v4.addFunction([.5, 0.5 * np.sin(i * np.pi * 2)], -a1, [linear, swirl], .25, [c*z_ for c in c3])
+    v4.addFunction([.5], -a2, [linear], .25,  [c1[i]*o_ if i==0 else c1[i] for i in range(3)])
+    v4.addFunction([.5, 0.25 * (1 - np.cos(i * np.pi * 4))], -a9, [linear, bubble], .25, c2)
+    v4.addRotation((1, -np.pi * 4 * i, 1))
+
+    F1P = FractalParameters(burn, niter, zoom, 0.0, 0.0, 2 * np.pi * 2 * i)
+    F1 = Fractal(F1P, [v1, v2, v3, v4])
+
+    print("Running")
+    F1.run()
+    print("Generating the image")
+    out, bitmap = F1.toImage(
+        1280,
+        coef_forget=0.3,
+        coef_intensity=0.6,
+        optional_kernel_filtering=False)
+    if save:
+        out.save(f"{name}-{i * 1000}.png")
+
+
+def short_restart(i=0, save=True):
+    name = "short_restart"
+
+    burn = 20
+    niter = 50
+    zoom = 1
+    N = 25000
+
+    a1 = np.array([0, 1, 0.25 * (1 - np.cos(i * np.pi * 4)), 0, 0, 1])
+    a2 = np.array([1, 1, 0, 0.25 * (1 - np.cos(i * np.pi * 8)), 0, 1])
+    a3 = np.array([0, 1, 0, 1, 0, 1])
+    a5 = np.array([-1, 1, 0, 0, 0, 1])
+    a8 = np.array([-1, 1, 0, 0, 0, 1])
+    a9 = np.array([0, 1, 0.25 * (1 - np.cos(i * np.pi * 4)), -1, 0, 1])
+
+    z_ = (1 + np.cos(i * np.pi * 4)) / 2
+    zf_ = (1 + np.cos(i * np.pi * 2)) / 2
+    o_ = (1 + np.sin(i * np.pi * 2)) / 2
+
+    c1 = [209, 34, 41]
+    c2 = [246, 138, 30]
+    c3 = [253, 224, 26]
+    c4 = [0, 121*1.2, 64*1.2]
+    c5 = [36*1.2, 64*1.2, 142*1.2]
+    c6 = [115*1.2, 41*1.2, 130*1.2]
+
+
+
+    v1 = Variation(N)
+    v1.addFunction([.5, 0.25 * np.sin(i * np.pi * 2)], a1, [linear, swirl], .25, c1)
+    v1.addFunction([.5], a2, [linear], .25, c2)
+    v1.addFunction([.5, 0.25 * (1 - np.cos(i * np.pi * 2))], a3, [linear, swirl], .25,  c3)
+    v1.addRotation((1,np.pi * 2 * i, 1))
+
+    v2 = Variation(N)
+    v2.addFunction([o_], a1, [linear], .25, c4)
+    v2.addFunction([.5, 0.25 * (1 - np.cos(i * np.pi * 4))], a5, [linear, swirl], .25, c5)
+    v2.addFunction([.5, 0.5 * np.sin(i * np.pi * 2)], a3, [linear, swirl], .25, c6)
+    v2.addRotation((1, -np.pi * 2 * i, 1))
+
+
+    v3 = Variation(N)
+    v3.addFunction([.5, 0.5 * (1 - np.cos(i * np.pi * 2))], a1, [linear, swirl], .25, c6)
+    v3.addFunction([.5], a8, [linear], .25,  c2)
+    v3.addFunction([.5, 0.25 * np.sin(i * np.pi * 2)], a9, [linear, swirl], .25, c3)
+
+
+    v4 = Variation(N)
+    v4.addFunction([.5, 0.5 * np.sin(i * np.pi * 2)], a1, [linear, swirl], .25, c4)
+    v4.addFunction([0.5], a2, [linear], .25,  c5)
+    v4.addFunction([.5, 0*(o_-0.5)], a9, [linear, swirl], .25, c1)
+    v4.addRotation((1, np.pi * 4 * i, 1))
+
+    F1P = FractalParameters(burn, niter, zoom, 0.0, 0.0,0)
+    F1 = Fractal(F1P, [v1, v2, v3, v4])
+
+    print("Running")
+    F1.run()
+    print("Generating the image")
+    out, bitmap = F1.toImage(
+        600
+        ,
+        coef_forget=0.3,
+        coef_intensity=0.8,
+        optional_kernel_filtering=False)
+    if save:
+        out.save(f"{name}-{i * 250}.png")
+
+def uff(i=0, save=True):
+
+
+    name = "uffi"
+
+    burn = 20
+    niter = 50
+    N = 25000
+
+
+    z_ = (1 + np.cos(i * np.pi * 4)) / 2 # commence à 1
+    zf_ = (1 + np.cos(i * np.pi * 8)) / 2 # commence à 1
+    o_ = (1 + np.sin(i * np.pi * 16)) / 2 # commence à 05
+    of_ = (1 + np.cos(i * np.pi * 4 + 2*np.pi/2)) / 2 # commence à 0
+
+
+    a1 = np.array([1, z_, 0, 1, 0, 1])
+    a2 = np.array([z_, 1, 0, of_, 0, 1])
+    a3 = np.array([of_, 1, 0, 1, 0, 1])
+
+
+    c1 = [255, 255, 255]
+    c2 = [200, 200, 200]
+    c3 = [225, 225, 225]
+
+    v1 = Variation(N)
+    v1.addFunction([.5, of_*2], a1, [linear, swirl], .25, c1)
+    v1.addFunction([.5], a2, [linear], .25, c2)
+    v1.addFunction([.5, of_], a3, [linear, swirl], .25,  c3)
+    v1.addFunction([ o_, of_], a3+a2, [swirl, bubble], of_, c3)
+    v1.addRotation(90)
+    v1.addFinal([0.4,0.1*zf_],(a1+a2+a3)/3,[linear, spherical])
+
+    F1P = FractalParameters(burn, niter, 1
+                            , 0.0, 0.0, 0)
+    F1 = Fractal(F1P, [v1])
+
+
+    print("Running")
+    F1.run()
+    print("Generating the image")
+    out, bitmap = F1.toImage(
+        1280,
+        coef_forget=0.3,
+        coef_intensity=0.8,
+        optional_kernel_filtering=False)
+    if save:
+        out.save(f"{name}-{i * 250}.png")
+
+
+
 if __name__ == '__main__':
-    make_serp()
+
+    from joblib import Parallel, delayed
+    n_im = 250
+    Parallel(n_jobs=-2)(delayed(uff)((i)/n_im) for i in range(n_im+1))
+
+
+    import glob
+    from natsort import natsorted
+    from moviepy.editor import *
+
+    base_dir = os.path.realpath(".")
+    print(base_dir)
+
+    fps = 25
+
+    file_list = glob.glob('uffi*.png')  # Get all the pngs in the current directory
+    file_list_sorted = natsorted(file_list, reverse=False)  # Sort the images
+
+    clips = [ImageClip(m).set_duration(1/25)
+             for m in file_list_sorted]
+
+    concat_clip = concatenate_videoclips(clips, method="compose")
+    concat_clip.write_videofile("uffi.mp4", fps=fps)
