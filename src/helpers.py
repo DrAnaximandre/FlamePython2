@@ -682,8 +682,7 @@ def uff(i=0, name="uff", save=True):
         out.save(f"{folder_name}{name}-{i * 250}.png")
 
 
-
-if __name__ == '__main__':
+def do_short_restart_video_demo():
 
     fps = 25
     n_im = 250
@@ -691,15 +690,20 @@ if __name__ == '__main__':
 
     Parallel(n_jobs=-2)(
         delayed(partial(short_restart, name=name))(
-            (i)/n_im) for i in range(n_im+1)
+            (i) / n_im) for i in range(n_im + 1)
     )
 
     base_dir = os.path.realpath(f"../images/{name}/")
     file_list = glob.glob(f'{base_dir}/{name}*.png')
     file_list_sorted = natsorted(file_list, reverse=False)
 
-    clips = [ImageClip(m).set_duration(1/fps)
+    clips = [ImageClip(m).set_duration(1 / fps)
              for m in file_list_sorted]
 
     concat_clip = concatenate_videoclips(clips, method="compose")
     concat_clip.write_videofile(f"{base_dir}/{name}.mp4", fps=fps)
+
+
+if __name__ == '__main__':
+
+    do_short_restart_video_demo()
