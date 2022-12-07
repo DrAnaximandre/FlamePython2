@@ -1,4 +1,4 @@
-from utils import *
+from utils import rotation, renderImage
 import numpy as np
 from PIL import Image, ImageFilter
 from typing import List
@@ -86,7 +86,7 @@ class Fractal:
         self.F[:, 1] += self.fractal_parameters.dy
 
         # ## rotating the Fractal
-        self.F = utils.rotation(1,
+        self.F = rotation(1,
                           self.fractal_parameters.final_rot,
                           self.F,
                           np.random.uniform(size=self.F.shape[0]))
