@@ -1,3 +1,4 @@
+from functools import partial
 import numpy as np
 from Fractal import Fractal, FractalParameters
 from Additives import linear, bubble, swirl,pdj, spherical, sinmoche
@@ -564,13 +565,17 @@ def contrary_motion(i=0, save=True):
         out.save(f"{name}-{i * 1000}.png")
 
 
-def short_restart(i=0, save=True):
-    name = "short_restart"
+def short_restart(i=0, name="short_restart", save=True):
+
+    folder_name = f"../images/{name}/"
+    # create the folder if it does not exist
+    if not os.path.exists(folder_name):
+        os.makedirs(folder_name)
 
     burn = 20
     niter = 50
     zoom = 1
-    N = 25000
+    N = 2500
 
     a1 = np.array([0, 1, 0.25 * (1 - np.cos(i * np.pi * 4)), 0, 0, 1])
     a2 = np.array([1, 1, 0, 0.25 * (1 - np.cos(i * np.pi * 8)), 0, 1])
@@ -580,7 +585,7 @@ def short_restart(i=0, save=True):
     a9 = np.array([0, 1, 0.25 * (1 - np.cos(i * np.pi * 4)), -1, 0, 1])
 
     z_ = (1 + np.cos(i * np.pi * 4)) / 2
-    zf_ = (1 + np.cos(i * np.pi * 2)) / 2
+    zf_ = (1 + np.cos(i * np.pi * 2)) / 2 - 1
     o_ = (1 + np.sin(i * np.pi * 2)) / 2
 
     c1 = [209, 34, 41]
@@ -604,10 +609,9 @@ def short_restart(i=0, save=True):
     v2.addFunction([.5, 0.5 * np.sin(i * np.pi * 2)], a3, [linear, swirl], .25, c6)
     v2.addRotation((1, -np.pi * 2 * i, 1))
 
-
     v3 = Variation(N)
     v3.addFunction([.5, 0.5 * (1 - np.cos(i * np.pi * 2))], a1, [linear, swirl], .25, c6)
-    v3.addFunction([.5], a8, [linear], .25,  c2)
+    v3.addFunction([.5, zf_], a8, [linear, bubble], .25,  c2)
     v3.addFunction([.5, 0.25 * np.sin(i * np.pi * 2)], a9, [linear, swirl], .25, c3)
 
 
@@ -620,9 +624,7 @@ def short_restart(i=0, save=True):
     F1P = FractalParameters(burn, niter, zoom, 0.0, 0.0,0)
     F1 = Fractal(F1P, [v1, v2, v3, v4])
 
-    print("Running")
     F1.run()
-    print("Generating the image")
     out, bitmap = F1.toImage(
         600
         ,
@@ -630,12 +632,14 @@ def short_restart(i=0, save=True):
         coef_intensity=0.8,
         optional_kernel_filtering=False)
     if save:
-        out.save(f"{name}-{i * 250}.png")
+        out.save(f"{folder_name}{name}-{i * 250}.png")
 
-def uff(i=0, save=True):
+def uff(i=0, name="uff", save=True):
 
-
-    name = "uffi"
+    folder_name = f"../images/{name}/"
+    # create the folder if it does not exist
+    if not os.path.exists(folder_name):
+        os.makedirs(folder_name)
 
     burn = 20
     niter = 50
@@ -647,11 +651,9 @@ def uff(i=0, save=True):
     o_ = (1 + np.sin(i * np.pi * 16)) / 2 # commence à 05
     of_ = (1 + np.cos(i * np.pi * 4 + 2*np.pi/2)) / 2 # commence à 0
 
-
     a1 = np.array([1, z_, 0, 1, 0, 1])
     a2 = np.array([z_, 1, 0, of_, 0, 1])
-    a3 = np.array([of_, 1, 0, 1, 0, 1])
-
+    a3 = np.array([of_, 1, 0, 1, o_, 1])
 
     c1 = [255, 255, 255]
     c2 = [200, 200, 200]
@@ -669,8 +671,6 @@ def uff(i=0, save=True):
                             , 0.0, 0.0, 0)
     F1 = Fractal(F1P, [v1])
 
-
-    print("Running")
     F1.run()
     print("Generating the image")
     out, bitmap = F1.toImage(
@@ -679,26 +679,27 @@ def uff(i=0, save=True):
         coef_intensity=0.8,
         optional_kernel_filtering=False)
     if save:
-        out.save(f"{name}-{i * 250}.png")
+        out.save(f"{folder_name}{name}-{i * 250}.png")
 
 
 
 if __name__ == '__main__':
 
-    n_im = 250
-    Parallel(n_jobs=-2)(delayed(uff)((i)/n_im) for i in range(n_im+1))
-
-
-    base_dir = os.path.realpath(".")
-    print(base_dir)
-
     fps = 25
+    n_im = 250
+    name = "demo"
 
-    file_list = glob.glob('uffi*.png')  # Get all the pngs in the current directory
-    file_list_sorted = natsorted(file_list, reverse=False)  # Sort the images
+    Parallel(n_jobs=-2)(
+        delayed(partial(short_restart, name=name))(
+            (i)/n_im) for i in range(n_im+1)
+    )
 
-    clips = [ImageClip(m).set_duration(1/25)
+    base_dir = os.path.realpath(f"../images/{name}/")
+    file_list = glob.glob(f'{base_dir}/{name}*.png')
+    file_list_sorted = natsorted(file_list, reverse=False)
+
+    clips = [ImageClip(m).set_duration(1/fps)
              for m in file_list_sorted]
 
     concat_clip = concatenate_videoclips(clips, method="compose")
-    concat_clip.write_videofile("uffi.mp4", fps=fps)
+    concat_clip.write_videofile(f"{base_dir}/{name}.mp4", fps=fps)
