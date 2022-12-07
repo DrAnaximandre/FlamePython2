@@ -7,6 +7,13 @@ from typing import Tuple
 
 import PIL.ImageOps as pops
 
+from joblib import Parallel, delayed
+
+import glob
+from natsort import natsorted
+from moviepy.editor import *
+
+
 
 class ImageParameters(object):
 
@@ -678,14 +685,9 @@ def uff(i=0, save=True):
 
 if __name__ == '__main__':
 
-    from joblib import Parallel, delayed
     n_im = 250
     Parallel(n_jobs=-2)(delayed(uff)((i)/n_im) for i in range(n_im+1))
 
-
-    import glob
-    from natsort import natsorted
-    from moviepy.editor import *
 
     base_dir = os.path.realpath(".")
     print(base_dir)
