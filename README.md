@@ -13,18 +13,16 @@ To use this implementation, clone the repository and follow the instructions in 
 
 
 
-### Generate your first images
+### Generating a video
 
-Run the following command in a terminal:
-```
+To generate a video, run the following command:
+
+```bash
 python src/helpers.py 
 ```
 
-An image will be saved locally.
-Your action on the parameters that were used to generate this image is required in the terminal.   
+After some computation time, a video will be saved locally.
 
-One first suggestion is to increase N from the default to 1000000.
-The time needed to render an image will increase.
 
 
 ### UserGuide Example
@@ -89,13 +87,6 @@ Saving is pretty fast:
 ```
 out.save("serp.png")
 ```
-
-Taddaaa!
-
-
-### History of the repo
-
-I tried to make it easy to add Functions and Variations to the Fractals. 
 
 <p align="center"> <img src="images/Serp.png"></p>
 
