@@ -13,16 +13,6 @@ To use this implementation, clone the repository and follow the instructions in 
 
 
 
-### Dependencies
-
-Requirements:
-```
-numpy
-pillow
-matplotlib
-tqdm
-```
-
 ### Generate your first images
 
 Run the following command in a terminal:
