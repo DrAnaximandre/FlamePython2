@@ -23,19 +23,16 @@ class Fractal:
 
         # Controllable parameters
         self.fractal_parameters = fractal_parameters
-        
         # Variations
         self.variations = variations
 
         # former build
         self.sumNs = sum([var.N for var in self.variations])
-        totalSize = self.sumNs * self.fractal_parameters.niter
-        self.F = np.random.uniform(-1, 1, size=(totalSize, 2))
-        self.C = np.ones(shape=(totalSize, 3)) * 255
+        total_number_of_rows = self.sumNs * self.fractal_parameters.niter
+        self.F = np.random.uniform(-1, 1, size=(total_number_of_rows, 2))
+        self.C = np.ones(shape=(total_number_of_rows, 3)) * 255
         [v.fixProba() for v in self.variations]
         self.hmv = len(self.variations)
-
-   
 
     def run1iter(self, whichiter, burn):
 
@@ -128,10 +125,12 @@ class Fractal:
             out = out.filter(supsammpK)
 
         return(out, bitmap)
+
+
 if __name__ == '__main__':
 
     from helpers import *
-    make_serp()
+    # make_serp()
     # make_mess()
-    # make_final()
+    make_final()
     # make_quizz()

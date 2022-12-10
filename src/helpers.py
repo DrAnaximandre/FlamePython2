@@ -6,6 +6,8 @@ from quizz import quizz
 from Variation import Variation, VariationParameters
 from typing import Tuple
 
+from ImageMakers import ImageMaker, BleuNoir
+
 import PIL.ImageOps as pops
 
 from joblib import Parallel, delayed
@@ -13,7 +15,6 @@ from joblib import Parallel, delayed
 import glob
 from natsort import natsorted
 from moviepy.editor import *
-
 
 
 class ImageParameters(object):
@@ -83,31 +84,35 @@ def make_quizz(name="key-book-swirl"):
         main_param, end = quizz(main_param, iteration, out)
 
 
-def make_final():
-    burn = 20
-    niter = 50
-    zoom = 1
-    N = 15000
+def make_final(N = 10000):
+    FPs = FractalParameters(
+        burn=5,
+        niter = 50,
+        zoom = 0.5,
+        dx = 0.5,
+        dy = 0,
+        final_rot = 1
+    )
 
     a1 = np.array([0, 1, 0, 0, 0, 1])
-    a2 = np.array([1, 1, 0, 0, 0, 1])
+    a2 = np.array([1, 1, 0, 0.5, 0, 1])
     a3 = np.array([0, 1, 0, 1, 0, 1])
 
-    F1 = Fractal(burn, niter, zoom)
-
     v1 = Variation(N)
-    v1.addFunction([.5], a1, [linear], .2, [255, 0, 0])
-    v1.addFunction([-0.5], a2, [linear], .2, [0, 255, 0])
-    v1.addFunction([.5], a3, [linear], .2, [0, 0, 255])
+    v1.addFunction([.5, 0.1], a1, [linear, swirl], .2, [255, 0, 0])
+    v1.addFunction([-0.5, 0.5], a2, [linear, bubble], .2, [50, 255, 10])
+    v1.addFunction([.5, -1 ], a3, [swirl, linear], .2, [0, 0, 255])
 
-    v1.addFinal([0.95], [-0.5, 0.0003, 1, 0.5, 1, -0.005], [linear])
-    F1.addVariation(v1)
-    F1.build()
+    v1.addFinal([0.3, 1], [-0.5, 0.3, 1, 0.5, 1, -0.5], [swirl, bubble])
+
+    F1 = Fractal(FPs, [v1])
+
     print("Running")
-    F1.runAll()
+    F1.run()
     print("Generating the image")
     out, bitmap = F1.toImage(
-        1024, coef_forget=0.9,
+        1024, coef_forget=0.3,
+        coef_intensity=1.0,
         optional_kernel_filtering=False)
     out.save("final.png")
 
@@ -641,7 +646,7 @@ def uff(i=0, name="uff", save=True):
     if not os.path.exists(folder_name):
         os.makedirs(folder_name)
 
-    burn = 20
+    burn = 10
     niter = 50
     N = 25000
 
@@ -651,7 +656,7 @@ def uff(i=0, name="uff", save=True):
     o_ = (1 + np.sin(i * np.pi * 16)) / 2 # commence à 05
     of_ = (1 + np.cos(i * np.pi * 4 + 2*np.pi/2)) / 2 # commence à 0
 
-    a1 = np.array([1, z_, 0, 1, 0, 1])
+    a1 = np.array([1, z_, 0, of_*np.sqrt(3), 0, 1])
     a2 = np.array([z_, 1, 0, of_, 0, 1])
     a3 = np.array([of_, 1, 0, 1, o_, 1])
 
@@ -662,13 +667,13 @@ def uff(i=0, name="uff", save=True):
     v1 = Variation(N)
     v1.addFunction([.5, of_*2], a1, [linear, swirl], .25, c1)
     v1.addFunction([.5], a2, [linear], .25, c2)
-    v1.addFunction([.5, of_], a3, [linear, swirl], .25,  c3)
-    v1.addFunction([ o_, of_], a3+a2, [swirl, bubble], of_, c3)
-    v1.addRotation(90)
-    v1.addFinal([0.4,0.1*zf_],(a1+a2+a3)/3,[linear, spherical])
+    v1.addFunction([.5, of_], a3, [pdj, swirl], .25,  c3)
+    v1.addFunction([ o_, of_], a3+np.sqrt(2)*a2, [swirl, linear], of_, c3)
+    v1.addRotation(120*i)
+    v1.addFinal([0.4, 0.1*zf_],(a1+a2+a3)/3,[linear, swirl])
 
     F1P = FractalParameters(burn, niter, 1
-                            , 0.0, 0.0, 0)
+                            ,0.0, 0.0, 90)
     F1 = Fractal(F1P, [v1])
 
     F1.run()
@@ -703,7 +708,41 @@ def do_short_restart_video_demo():
     concat_clip = concatenate_videoclips(clips, method="compose")
     concat_clip.write_videofile(f"{base_dir}/{name}.mp4", fps=fps)
 
+def do_video(
+        image_generator,
+        name="video_demo",
+        fps=25,
+        n_im = 250,
+):
+    Parallel(n_jobs=-2)(
+        delayed(partial(image_generator, name=name))(
+            (i) / n_im) for i in range(n_im + 1)
+    )
+    base_dir = os.path.realpath(f"../images/{name}/")
+    file_list = glob.glob(f'{base_dir}/{name}*.png')
+    file_list_sorted = natsorted(file_list, reverse=False)
+
+    from PIL import Image
+
+    #
+    # frames = [Image.open(image) for image in file_list_sorted]
+    # frame_one = frames[0]
+    # frame_one.save(f"{base_dir}/{name}.gif", format="GIF", append_images=frames,
+    #                    save_all=True, duration=100, loop=0)
+    #
+
+
+    clips = [ImageClip(m).set_duration(1 / fps)
+             for m in file_list_sorted]
+
+    concat_clip = concatenate_videoclips(clips, method="compose")
+    concat_clip.write_videofile(f"{base_dir}/{name}.mp4", fps=fps, codec="libx264")
+
+
 
 if __name__ == '__main__':
 
-    do_short_restart_video_demo()
+    # do_short_restart_video_demo()
+    # short_restart(123, name="demo", save=True)
+
+    do_video(BleuNoir, name="couper-image-2", fps=25,  n_im=250)
