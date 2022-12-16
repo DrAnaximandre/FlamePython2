@@ -5,3 +5,4 @@ tqdm
 natsort
 moviepy
 joblib
+numba
