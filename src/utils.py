@@ -1,4 +1,5 @@
 import numpy as np
+from numba import njit
 from tqdm import tqdm
 
 def rotation(ncuts, angle, resF, r, coef=1):
@@ -24,6 +25,7 @@ def rotation(ncuts, angle, resF, r, coef=1):
     return(resF)
 
 
+@njit(fastmath=True)
 def renderImage(F_loc, C, bitmap, intensity, goods, coef_forget):
     ''' this renders the image
         '''
