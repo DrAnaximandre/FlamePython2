@@ -1,8 +1,9 @@
 import os
+from functools import partial
 
 import numpy as np
 
-from src.Additives import swirl, linear, bubble, spherical
+from src.Additives import swirl, linear, bubble, spherical, pdj
 from src.Fractal import FractalParameters, Fractal
 from src.Function import Function
 from src.Variation import Variation
@@ -43,15 +44,15 @@ def ImageMaker( #i=0,  # frame number
         os.makedirs(folder_name)
 
     #adapt later
-    i = int(r_i * 3)
+    i = int(r_i * 50)
 
     alpha = (np.cos(2 * np.pi * r_i) + 1) / 2
-    beta = (np.cos(r_i * np.pi * 2 + np.pi/2) + 1) / 2
+    beta = (np.cos(r_i * np.pi * 4 * alpha + np.pi/2)*10 + 11) / 21
 
     burn = 10
     niter = 30
-    zoom = 1.2
-    N = 35000
+    zoom = 1
+    N = 50000
 
     M = 151
 
@@ -73,16 +74,17 @@ def ImageMaker( #i=0,  # frame number
 
     for j in range(M):
         index_c1 = j % len(B)
-        index_c2 = (j * j + j) % len(B)
+        index_c2 = (j * j + j) % len(R)
         index_c3 = (j * j + j + 1) % len(B)
         index_c4 = (j + 2) % len(B)
         beta_j =  (np.cos(j+ r_i * np.pi * 2) + 1) / 2
 
         c1 = np.array(B[index_c1]) * beta_j + np.array(B[index_c3]) * (1-beta_j)
-        c2 = np.array(B[index_c2]) * beta_j + np.array(B[index_c4]) * (1-beta_j)
+        c2 = np.array(R[index_c2]) * beta_j + np.array(B[index_c4]) * (1-beta_j)
 
         color = c1 * alpha + c2 * (1-alpha)
-        v1.addFunction([0.6*alpha, -0.09*(1-alpha), (1-alpha)*0.5, 0.003, 0.003*beta_j/2], A[j, :], [linear, bubble, spherical, swirl, linear], 1/M,  col=color)
+        v1.addFunction([0.6 + 0.4 * np.sin((1+alpha)*(1-r_i)*2*np.pi), (1-beta)*0.005, 0.003, 0.003*beta_j/2],
+                       A[(j-1)%M, :], [bubble, swirl, pdj, linear], 1/M,  col=color)
 
     #v1.addRotation((4, r_i*np.pi*2, 0.88))
     #v1.addFinal([0.5, -.07, 0.01],[0.5, 1.1, alpha, -0.005, -1.1, 0.4321], [bubble, linear, spherical])
@@ -93,9 +95,9 @@ def ImageMaker( #i=0,  # frame number
     F1.run()
     out, bitmap = F1.toImage(
         1024,
-        coef_forget=0.3,
-        coef_intensity=0.8,
-        optional_kernel_filtering=True)
+        coef_forget=1.3,
+        coef_intensity=1.8,
+        optional_kernel_filtering=False)
     if save:
         out.save(f"{folder_name}{name}-{i}.png")
 
@@ -168,3 +170,68 @@ def BleuNoir( #i=0,  # frame number
             optional_kernel_filtering=True)
         if save:
             out.save(f"{folder_name}{name}-{i}.png")
+
+
+
+from LFOs import *
+
+
+def create_folder(folder_name):
+    if not os.path.exists(folder_name):
+        os.makedirs(folder_name)
+def LinearBlossomReturns(r_i=0,
+                         name="LBR"):
+
+
+    folder_name = f"../images/{name}/"
+
+
+    create_folder(folder_name)
+
+    # adapt later
+    i = int(r_i * 25)
+
+    alpha = sLFO(min = 0.1, max=1)(r_i)
+    gamma = sLFO(min=0, max=1, speed=2*np.pi, phase=1)(r_i)
+
+
+    burn = 10
+    niter = 45
+    zoom = 1 # sLFO(min = 0.971, max=1, speed=4*np.pi)(sLFO()(r_i))
+    N = 50000
+
+
+    M = 15
+
+    A = np.ones((M, 6)) *0.004
+    for t in range(M):
+        beta_t = sLFO(min = 0.1, max=1, speed=4*np.pi)(t/M)
+        for j in range(6):
+            A[t, j] +=  np.where(j>2 == 0, 1, -1.05) * np.cos(np.sqrt(j+alpha) + 2 * np.pi * t / M) * 0.810256
+            A[t, j] +=  np.where(j%3 == 0, 1, -1) * sLFO(phase = np.sqrt(j+beta_t), speed=2*np.pi, max = 0.34999)(r_i)
+            A[t, j] -=  np.where(j%5 == 0, -0.4, -0.4) * sLFO(min=0.5, max=0.6, phase=t)(r_i) *t/M
+            # A[t, j] += np.where((t*j) % 4 == 0, -0.08, 0.09) * sLFO(min=-0.1, max=0.6, phase=t/M)(r_i)
+            # A[t, j] += np.where(j % 3 == 0, -0.3, 0.3) * sLFO(min=-1, max= 0.6, phase=t+j)(r_i)*beta_t
+
+    v = Variation(N)
+    for t in range(M):
+        beta_t = sLFO(min = 0, max=0.1, speed=4*np.pi)(t/(M*2) + r_i/2)
+
+        c1 = R[t % len(R)]
+        c2 = B[t**2 % len(B)]
+        color = np.array(c1) * gamma + np.array(c2) * (1-gamma)
+        color = np.array(c1) * alpha + np.array(color) * (1-alpha)
+        v.addFunction([.5, beta_t], A[t,:], [partial(linear, dx=0, dy=0), spherical], 1/M, color)
+
+    F1P = FractalParameters(burn, niter, zoom, 0, 0, 2*np.pi*r_i)
+    F1 = Fractal(F1P, [v])
+    F1.run()
+    out, bitmap = F1.toImage(
+        1024,
+        coef_forget=1.003,
+        coef_intensity=1.8,
+        optional_kernel_filtering=False)
+    out.save(f"{folder_name}{name}-{i}.png")
+
+
+

@@ -1,12 +1,13 @@
+from dataclasses import dataclass
 from functools import partial
 import numpy as np
 from Fractal import Fractal, FractalParameters
 from Additives import linear, bubble, swirl,pdj, spherical, sinmoche
 from quizz import quizz
-from Variation import Variation, VariationParameters
+from Variation import Variation
 from typing import Tuple
 
-from ImageMakers import ImageMaker, BleuNoir
+from ImageMakers import BleuNoir, LinearBlossomReturns
 
 import PIL.ImageOps as pops
 
@@ -15,6 +16,8 @@ from joblib import Parallel, delayed
 import glob
 from natsort import natsorted
 from moviepy.editor import *
+
+from src.LFOs import sLFO
 
 
 class ImageParameters(object):
@@ -708,11 +711,11 @@ def do_short_restart_video_demo():
     concat_clip = concatenate_videoclips(clips, method="compose")
     concat_clip.write_videofile(f"{base_dir}/{name}.mp4", fps=fps)
 
-def do_video(
+
+def do_gif(
         image_generator,
         name="video_demo",
-        fps=25,
-        n_im = 250,
+        n_im=50
 ):
     Parallel(n_jobs=-2)(
         delayed(partial(image_generator, name=name))(
@@ -724,12 +727,27 @@ def do_video(
 
     from PIL import Image
 
-    #
-    # frames = [Image.open(image) for image in file_list_sorted]
-    # frame_one = frames[0]
-    # frame_one.save(f"{base_dir}/{name}.gif", format="GIF", append_images=frames,
-    #                    save_all=True, duration=100, loop=0)
-    #
+
+    frames = [Image.open(image) for image in file_list_sorted]
+    frame_one = frames[0]
+    frame_one.save(f"{base_dir}/{name}.gif", format="GIF", append_images=frames,
+                       save_all=True, duration=85, loop=0)
+
+
+
+def do_video(
+        image_generator,
+        name="video_demo",
+        fps=25,
+        n_im = 25,
+):
+    Parallel(n_jobs=-2)(
+        delayed(partial(image_generator, name=name))(
+            (i) / n_im) for i in range(n_im + 1)
+    )
+    base_dir = os.path.realpath(f"../images/{name}/")
+    file_list = glob.glob(f'{base_dir}/{name}*.png')
+    file_list_sorted = natsorted(file_list, reverse=False)
 
 
     clips = [ImageClip(m).set_duration(1 / fps)
@@ -738,6 +756,46 @@ def do_video(
     concat_clip = concatenate_videoclips(clips, method="compose")
     concat_clip.write_videofile(f"{base_dir}/{name}.mp4", fps=fps, codec="libx264")
 
+from ImageFromParameters import ImageFromParameters
+
+
+from ListOfVariations import ListOfVariations
+
+
+def do_video_with_image_from_parameters():
+    fps = 25
+    n_im = 10*25
+    name = "bobberroo-deluxe"
+
+    images_to_generate = [ImageFromParameters(
+        i,
+        n_im,
+        name=name,
+        save=True,
+        burn=10,
+        niter=50,
+        N=50000,
+        zoom = sLFO(min=1, max=2, phase=2, speed=2 * 3.14)(i/n_im),
+        x=0,
+        y=0,
+        angle=0,
+    ) for i in range(n_im + 1)]
+
+
+
+    Parallel(n_jobs=-2)(
+        delayed(images_to_generate[i].generate)() for i in range(n_im + 1)
+    )
+
+    base_dir = os.path.realpath(f"../images/{name}/")
+    file_list = glob.glob(f'{base_dir}/{name}*.png')
+    file_list_sorted = natsorted(file_list, reverse=False)
+
+    clips = [ImageClip(m).set_duration(1 / fps)
+             for m in file_list_sorted]
+
+    concat_clip = concatenate_videoclips(clips, method="compose")
+    concat_clip.write_videofile(f"{base_dir}/{name}.mp4", fps=fps, codec="libx264")
 
 
 if __name__ == '__main__':
@@ -745,4 +803,20 @@ if __name__ == '__main__':
     # do_short_restart_video_demo()
     # short_restart(123, name="demo", save=True)
 
-    do_video(BleuNoir, name="couper-image-2", fps=25,  n_im=250)
+    # do_video(BleuNoir, name="couper-image-2", fps=25,  n_im=250)
+    #do_video(LinearBlossomReturns, name="back-to-lbr", n_im=25)
+
+    #do_video_with_image_from_parameters()
+    # #
+    ImageFromParameters(
+        75,
+        100,
+        name="bobcat",
+        save=True,
+        burn=1,
+        niter=3,
+        N=10000,
+        zoom=1,
+        x=0,
+        y=0,
+        angle=0).generate(coef_forget=0.3,coef_intensity=0.8,optional_kernel_filtering=False)

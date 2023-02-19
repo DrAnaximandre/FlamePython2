@@ -1,3 +1,4 @@
+from src.ListOfVariations import ListOfVariations
 from utils import rotation, renderImage
 import numpy as np
 from PIL import Image, ImageFilter
@@ -19,20 +20,22 @@ class Fractal:
 
     def __init__(self, 
         fractal_parameters: FractalParameters,
-        variations: List):
+        variations: ListOfVariations):
 
         # Controllable parameters
         self.fractal_parameters = fractal_parameters
         # Variations
         self.variations = variations
+        print(self.variations)
 
         # former build
         self.sumNs = sum([var.N for var in self.variations])
+        # print(self.sumNs)
         total_number_of_rows = self.sumNs * self.fractal_parameters.niter
         self.F = np.random.uniform(-1, 1, size=(total_number_of_rows, 2))
         self.C = np.ones(shape=(total_number_of_rows, 3)) * 255
-        [v.fixProba() for v in self.variations]
-        self.hmv = len(self.variations)
+        #[v.fixProba() for v in self.variations]
+        self.hmv = len(self.variations[0].list)
 
     def run1iter(self, whichiter, burn):
 
@@ -45,24 +48,35 @@ class Fractal:
         else:
             rangeIdsO = np.arange(b, c)
 
+        # print(f"rangeIdsI - {rangeIdsI}")
         totoF = self.F[rangeIdsI, :]
         totoC = self.C[rangeIdsI, :]
 
+        # print(f"totof - {totoF}")
+
         for i in range(self.hmv):
             snsi = sum([var.N for var in self.variations[:i]])
+            # print(f"snsi - {snsi}")
+            # print(f"self.variations[i].N - {self.variations[i].N}")
             ids = np.arange(snsi, snsi + self.variations[i].N)  # ugh
-            resloc, coloc = self.variations[i].runAllfunctions(
-                totoF[ids, :], totoC[ids, :], 0)#whichiter/self.fractal_parameters.niter)
-            storageF = self.variations[i].runAllrotations(resloc)
+           # print(ids)
+
+           # print(f"totoF[ids, :] before - {totoF[ids, :]}")
+            resloc, coloc = self.variations[i].list[0].runAllfunctions(
+                totoF[ids, :], totoC[ids, :], 0)
+            storageF = self.variations[i].list[0].runAllrotations(resloc)
+            # print(resloc)
             self.F[rangeIdsO[ids], :] = storageF
             self.C[rangeIdsO[ids], :] = coloc
 
+        # print(f"self.F = {self.F}")
         self.C[rangeIdsO, :] /= 2
 
     def run(self):
         for i in np.arange(self.fractal_parameters.burn):
             self.run1iter(0, True)
-        for i in np.arange(self.fractal_parameters.niter - 1):
+        for i in np.arange(1,self.fractal_parameters.niter -1):
+            # print("no burn")
             self.run1iter(i, False)
         self.F = self.F * self.fractal_parameters.zoom
 
@@ -98,19 +112,27 @@ class Fractal:
         conditions[:, 3] = F_loc[:, 1] > 0
 
         goods = np.where(np.all(conditions, 1))[0]
+
+        goods = goods[np.where((F_loc[goods, 0] != sizeImage / 2) | (F_loc[goods, 1] != sizeImage / 2))[0]]
+
+
         if verbose > 0:
             print("    number of points in the image: " + str(len(goods)))
 
         bitmap, intensity = renderImage(
-            F_loc, self.C, bitmap,intensity, goods, coef_forget)
+            F_loc, self.C, bitmap, intensity, goods, coef_forget)
 
         nmax = np.amax(intensity)
+        inmax = np.where(intensity == nmax)
         if verbose > 0:
-            print("    nmax: " + str(nmax))
+            print("    nmax: " + str(int(nmax)))
+            print("    inmax: " + str(inmax))
         intensity = np.power(np.log(intensity + 1
                                     ) / np.log(nmax + 1), coef_intensity)
 
-        bitmap = np.uint8(bitmap * np.reshape(np.repeat(intensity,3), (sizeImage,sizeImage,3)))
+        #bitmap = np.uint8(bitmap * np.reshape(np.repeat(intensity,3), (sizeImage,sizeImage,3)))
+
+        bitmap = np.uint8(np.reshape(np.repeat(intensity, 3), (sizeImage, sizeImage, 3)))
 
         out = Image.fromarray(bitmap)
 

@@ -31,7 +31,7 @@ def renderImage(F_loc, C, bitmap, intensity, goods, coef_forget):
         '''
     cf1 = coef_forget + 1
     C = C * coef_forget / cf1
-    for i in tqdm(goods):
+    for i in goods:
         ad0 = F_loc[i, 0]
         ad1 = F_loc[i, 1]
         bitmap[ad0, ad1] /= cf1

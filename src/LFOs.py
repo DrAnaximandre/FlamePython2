@@ -15,7 +15,7 @@ def LFO(t:float):
 
 
 @dataclass
-class sLFO(object):
+class gsLFO(object):
 
     speed: float = 2 * np.pi
     phase: float = 0
