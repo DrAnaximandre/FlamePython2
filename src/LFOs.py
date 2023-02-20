@@ -1,5 +1,7 @@
 from dataclasses import dataclass
 import numpy as np
+from scipy import signal
+
 
 
 def LFO(t:float):
@@ -15,7 +17,7 @@ def LFO(t:float):
 
 
 @dataclass
-class gsLFO(object):
+class sLFO(object):
 
     speed: float = 2 * np.pi
     phase: float = 0
@@ -24,6 +26,18 @@ class gsLFO(object):
     def __call__(self, t):
         return np.sin(self.phase + t * self.speed) * (self.max - self.min) / 2 + (self.max + self.min) / 2
 
+@dataclass
+class tLFO(object):
+    """triangular LFO"""
+
+    speed: float = 2 * np.pi
+    phase: float = 0
+    min: float = 0
+    max: float = 1
+    width: float = 0.5
+    def __call__(self, t):
+        triangle = signal.sawtooth(self.phase + self.speed * t, self.width)* (self.max - self.min) / 2 + (self.max + self.min) / 2
+        return triangle
 
 if __name__ == "__main__":
 

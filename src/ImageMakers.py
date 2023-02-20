@@ -3,10 +3,10 @@ from functools import partial
 
 import numpy as np
 
-from src.Additives import swirl, linear, bubble, spherical, pdj
-from src.Fractal import FractalParameters, Fractal
-from src.Function import Function
-from src.Variation import Variation
+from Additives import swirl, linear, bubble, spherical, pdj
+from Fractal import FractalParameters, Fractal
+from Function import Function
+from Variation import Variation
 
 
 

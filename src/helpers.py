@@ -17,7 +17,7 @@ import glob
 from natsort import natsorted
 from moviepy.editor import *
 
-from src.LFOs import sLFO
+from LFOs import sLFO, tLFO
 
 
 class ImageParameters(object):
@@ -759,26 +759,30 @@ def do_video(
 from ImageFromParameters import ImageFromParameters
 
 
-from ListOfVariations import ListOfVariations
+from VariationHolder import VariationHolder
 
 
 def do_video_with_image_from_parameters():
-    fps = 25
-    n_im = 10*25
-    name = "bobberroo-deluxe"
+    fps = 22
+    n_im = 15*fps
+    name = "ssh"
 
     images_to_generate = [ImageFromParameters(
         i,
         n_im,
         name=name,
         save=True,
-        burn=10,
-        niter=50,
-        N=50000,
-        zoom = sLFO(min=1, max=2, phase=2, speed=2 * 3.14)(i/n_im),
-        x=0,
-        y=0,
-        angle=0,
+        burn=3,
+        niter=25,
+        N=100000,
+        zoom=0.9,
+        x=-0,# sLFO(min=-0.2, max=0.2, phase=0, speed=2 * 3.14)(i/n_im),
+        y=-0,#-sLFO(min=-0.2, max=0.2, phase=0, speed=2 * 3.14)(i/n_im),
+        angle= sLFO(min=0, max=1, phase=0, speed=2 * 3.14)(i/n_im) +\
+         tLFO(min=-0.52, max=0.52, phase=np.pi/4, width=0.666, speed= 8 * 3.14)(i/n_im) +\
+         sLFO(min=-0.12, max=0.12, phase=np.pi/2, speed= 16 * 3.14)(i/n_im) + \
+         tLFO(min=-0.052, max=0.052, phase=np.pi/4*3, width=0.1666, speed= 2 * 3.14)(i/n_im) +\
+         tLFO(min=-0.0052, max=0.0052, phase=np.pi/3, width=0.2666, speed= 32 * 3.14)(i/n_im)
     ) for i in range(n_im + 1)]
 
 
@@ -806,17 +810,21 @@ if __name__ == '__main__':
     # do_video(BleuNoir, name="couper-image-2", fps=25,  n_im=250)
     #do_video(LinearBlossomReturns, name="back-to-lbr", n_im=25)
 
-    #do_video_with_image_from_parameters()
+    do_video_with_image_from_parameters()
     # #
-    ImageFromParameters(
-        75,
-        100,
-        name="bobcat",
-        save=True,
-        burn=1,
-        niter=3,
-        N=10000,
-        zoom=1,
-        x=0,
-        y=0,
-        angle=0).generate(coef_forget=0.3,coef_intensity=0.8,optional_kernel_filtering=False)
+    # ImageFromParameters(
+    #     75,
+    #     100,
+    #     name="bobcat",
+    #     save=True,
+    #     burn=1,
+    #     niter=30,
+    #     N=10000,
+    #     zoom=1,
+    #     x=0,
+    #     y=0,
+    #     angle=0).generate(
+    #     coef_forget=1.3,
+    #     coef_intensity=1.8,
+    #     optional_kernel_filtering=False,
+    #     verbose=True)

@@ -1,4 +1,4 @@
-from src.ListOfVariations import ListOfVariations
+from VariationHolder import VariationHolder
 from utils import rotation, renderImage
 import numpy as np
 from PIL import Image, ImageFilter
@@ -7,7 +7,7 @@ from typing import List
 
 class FractalParameters(object):
 
-    def __init__(self, burn=5, niter=25, zoom=1, dx=0.0, dy=0.0, final_rot=np.pi/2):
+    def __init__(self, burn=5, niter=25, zoom=1, dx=0.0, dy=0.0, final_rot=np.pi/2, verbose=False):
 
         self.burn = burn 
         self.niter = niter
@@ -15,27 +15,34 @@ class FractalParameters(object):
         self.dx = dx
         self.dy = dy
         self.final_rot = final_rot
+        self.verbose = verbose
 
 class Fractal:
 
-    def __init__(self, 
-        fractal_parameters: FractalParameters,
-        variations: ListOfVariations):
+    def __init__(self,
+                 fractal_parameters: FractalParameters,
+                 variationholder: VariationHolder):
 
         # Controllable parameters
         self.fractal_parameters = fractal_parameters
         # Variations
-        self.variations = variations
-        print(self.variations)
+        self.vh = variationholder
+        if fractal_parameters.verbose:
+            print(self.vh)
 
         # former build
-        self.sumNs = sum([var.N for var in self.variations])
-        # print(self.sumNs)
+        self.sumNs = sum([var.N for var in self.vh])
+        if fractal_parameters.verbose:
+            print(self.sumNs)
         total_number_of_rows = self.sumNs * self.fractal_parameters.niter
+        if fractal_parameters.verbose:
+            print(total_number_of_rows)
         self.F = np.random.uniform(-1, 1, size=(total_number_of_rows, 2))
         self.C = np.ones(shape=(total_number_of_rows, 3)) * 255
-        #[v.fixProba() for v in self.variations]
-        self.hmv = len(self.variations[0].list)
+
+
+        [v.variation.fixProba() for v in self.vh]
+        self.hmv = len(self.vh)
 
     def run1iter(self, whichiter, burn):
 
@@ -55,16 +62,16 @@ class Fractal:
         # print(f"totof - {totoF}")
 
         for i in range(self.hmv):
-            snsi = sum([var.N for var in self.variations[:i]])
+            snsi = sum([var.N for var in self.vh[:i]])
             # print(f"snsi - {snsi}")
             # print(f"self.variations[i].N - {self.variations[i].N}")
-            ids = np.arange(snsi, snsi + self.variations[i].N)  # ugh
+            ids = np.arange(snsi, snsi + self.vh[i].N)  # ugh
            # print(ids)
 
            # print(f"totoF[ids, :] before - {totoF[ids, :]}")
-            resloc, coloc = self.variations[i].list[0].runAllfunctions(
+            resloc, coloc = self.vh[i].variation.runAllfunctions(
                 totoF[ids, :], totoC[ids, :], 0)
-            storageF = self.variations[i].list[0].runAllrotations(resloc)
+            storageF = self.vh[i].variation.runAllrotations(resloc)
             # print(resloc)
             self.F[rangeIdsO[ids], :] = storageF
             self.C[rangeIdsO[ids], :] = coloc
@@ -113,7 +120,7 @@ class Fractal:
 
         goods = np.where(np.all(conditions, 1))[0]
 
-        goods = goods[np.where((F_loc[goods, 0] != sizeImage / 2) | (F_loc[goods, 1] != sizeImage / 2))[0]]
+        # goods = goods[np.where((F_loc[goods, 0] != sizeImage / 2) | (F_loc[goods, 1] != sizeImage / 2))[0]]
 
 
         if verbose > 0:
@@ -130,9 +137,8 @@ class Fractal:
         intensity = np.power(np.log(intensity + 1
                                     ) / np.log(nmax + 1), coef_intensity)
 
-        #bitmap = np.uint8(bitmap * np.reshape(np.repeat(intensity,3), (sizeImage,sizeImage,3)))
+        bitmap = np.uint8(bitmap * np.reshape(np.repeat(intensity,3), (sizeImage,sizeImage,3)))
 
-        bitmap = np.uint8(np.reshape(np.repeat(intensity, 3), (sizeImage, sizeImage, 3)))
 
         out = Image.fromarray(bitmap)
 
