@@ -18,10 +18,20 @@ def rotation(ncuts, angle, resF, r, coef=1):
     """
     rot = np.matrix(
         [[np.cos(angle), - np.sin(angle)], [np.sin(angle), np.cos(angle)]])
-    for i in range(ncuts):
+    
+    if type(coef)==int:
+        coef = [coef]
+    for i, c in enumerate(coef):
+        precut = i/ncuts
         cut = (i + 1) / ncuts
-        sel = np.where(r < cut)[0]
-        resF[sel, :] = coef * np.dot(resF[sel, :], rot)
+        sel = np.where((r<cut) & (r>precut))[0] 
+        for j in range(i+1):
+            if j==0:
+                resF[sel, :] = c * np.dot(resF[sel, :], rot)
+            else:
+                resF[sel, :] = np.dot(resF[sel, :], rot)
+            
+            
     return(resF)
 
 

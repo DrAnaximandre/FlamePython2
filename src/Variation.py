@@ -144,6 +144,7 @@ class Variation:
             elif type(self.rotation[i]) == tuple:
                 ncustom = self.rotation[i][0]
                 acustom = float(self.rotation[i][1])
-                coef = float(self.rotation[i][2])
+                coef = [float(b) for b in self.rotation[i][2]]
+                
                 resF = rotation(ncustom, acustom, resF, r, coef)
         return (resF)

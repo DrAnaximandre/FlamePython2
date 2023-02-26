@@ -27,9 +27,9 @@ cg2 = [0, 200, 0]
 cg3 = [10, 165, 20]
 
 
-R = [cr1, cr2, cr3, cr4, cr5, cr6]
-B = [cb1, cb2, cb3, cb4, cb5, cb6]
-G = [cg1, cg2, cg3]
+R = np.roll(np.array([cr1, cr2, cr3, cr4, cr5, cr6]),3)
+B = np.roll(np.array([cb1, cb2, cb3, cb4, cb5, cb6]),0)
+G = np.array([cg1, cg2, cg3])
 
 
 @dataclass
@@ -41,7 +41,8 @@ class VariationHolder:
 
     i_rat: float = 0
     N: int = 25000
-    M: int = 3
+    M: int = 5
+    kind: str = "demo"
 
     def __post_init__(self):
         self.variation = None
@@ -50,40 +51,66 @@ class VariationHolder:
     def generate(self):
         v = Variation(self.N)
 
-        alpha = tLFO(min=-0.2, max=1, phase=0)(self.i_rat)
-        gamma = sLFO(min=0, max=0.58, speed=2 * np.pi, phase=np.pi/2.25)(self.i_rat)
-        beta_t = tLFO(min=-0.5, max=0.5, phase=np.pi/2, speed=2 * 3.14)(self.i_rat)
-        delta_t = tLFO(min=-0.02, max=0.02, phase=np.pi/2, speed=2 * np.pi)(self.i_rat)
-        epsilon_t = sLFO(min=0.0, max=0.002, phase=0, speed=4 * 3.14)(self.i_rat)
-        kappa_t = tLFO(min=0, max=1, phase=np.pi/2, speed=4 * 3.14)(self.i_rat)
-        eta_t = tLFO(min=0, max=1, phase=0, width=0.25, speed=2 * 3.14)(self.i_rat)
-        lambda_t = tLFO(min=0.5, max=0.55, phase=np.pi/2, width=0.85, speed=8 * 3.14)(self.i_rat)
-        mu_t =  sLFO(min=0, max=0.25, speed=16 * np.pi, phase=np.pi/4)(self.i_rat)
+        alpha = sLFO(min=0, max=1, speed=2*np.pi, phase=np.pi/2)(self.i_rat)
+        gamma = sLFO(min=0, max=1, speed=2 *np.pi, phase=0)(self.i_rat)
+        beta = -tLFO(min=0, max=1, phase=0, width=0.75, speed=4 * np.pi)(self.i_rat) + tLFO(min=0, max=0.5, phase=np.pi/2, width=0.175, speed=2 * np.pi)(self.i_rat)
+        delta = sLFO(min=0.25, max=0.5, phase=3*np.pi/2, speed=2 * np.pi)(self.i_rat)
+        theta = tLFO(min=0, max=1, phase=np.pi / 3, width=0.155)(self.i_rat)
+        tau = tLFO(min=-1, max=1, phase=0, width=0.6125)(self.i_rat)
+        peta = sLFO(min=0.75, max=1, phase=np.pi / 2, speed=4 * np.pi)(self.i_rat)
+        zeta = sLFO(min=0.5, max=0.75, phase=np.pi / 2, speed=4 * np.pi)(self.i_rat)
 
-        A = np.ones((self.M, 6)) * 0.102424
+        A = np.ones((self.M, 6))
+        A[0, :] = [-peta, 1, 0.25, zeta, beta, 1]
+        A[1, :] = [1, gamma, zeta*beta, 0.5-zeta, theta, 1]
+        A[2, :] = [zeta, 0.15+tau*tau, 1-delta, alpha, 0.25+delta, 1-alpha*peta]
+        A[3, :] = [-1, theta*peta+beta, 1, -zeta, 1-tau, alpha]
 
-        A[0, :] = [-0.005, 0.951, eta_t, mu_t, gamma, 1]
-        A[1, :] = [1, 0, 1, lambda_t, 1, beta_t]
-        A[2, :] = [mu_t, alpha, kappa_t, 1, epsilon_t, 1]
-        
-        A *= 1.5
+        A[4, :] = [alpha, gamma, beta, delta, theta, tau]
+        A = np.roll(A, 2, axis=1)
+        A= np.tanh(A)
+
 
         for t in range(self.M):
 
-            c1 = np.array(B[t%len(B)]) * eta_t + np.array(G[(t*2)%len(G)]) * (1-eta_t)
-            c2 = np.array(B[t%len(B)])* kappa_t * (1-mu_t) + np.array(R[(t+1)%len(R)]) * (1-kappa_t)* (1-mu_t)
-            c3 = np.array(R[(1+2*t)%len(R)]) * epsilon_t*100 + np.array(R[2]) * (1-epsilon_t*100)
+            omega_t = tLFO(min=0.251, max=0.95, speed=2 * np.pi, width=.25, phase=t)(self.i_rat)
+            lambda_t = tLFO(min=0.25, max=0.98,  width=0.165, speed=2 * np.pi, phase=t)(self.i_rat)
+            eta_t = tLFO(min=0.1, max=0.1825, width=0.125, speed=2 * np.pi, phase=t)(self.i_rat)
+
+            ct = alpha * (B[t%len(B)]) + (1 - alpha) * (R[t%len(R)])
+            if t==0:
+                ct = np.mean((G[0],ct),0)
+
+            epsilon_t = sLFO(min=0.0102, max=0.102, phase=t*3, speed=2 * np.pi)(self.i_rat)
+            kappa_t = tLFO(min=0, max=0.212, phase=t, speed=2 * np.pi, width=0.65)(self.i_rat)
+            mu_t = tLFO(min=0, max=0.21075, width=0.7195, speed=2 * np.pi, phase=-t)(self.i_rat)
+
+            if t!=0:
+                v.addFunction([np.max((np.min((0.5,0.75-delta+eta_t)),0.25)), 0.1*mu_t*delta, kappa_t],
+                                  A[t, :],
+                                  [linear, bubble, spherical],
+                                  1 / self.M,
+                                  ct)
+            else:
+
+                v.addFunction(
+                    [np.max((np.min((0.5+epsilon_t, 0.75 - lambda_t + eta_t)), 0.25)),0.2],
+                    np.tanh(A[t, :]),
+                    [linear, bubble],
+                    1 / self.M,
+                    ct)
 
 
-            v.addFunction([0.5668+mu_t/2, delta_t, 0.0003*kappa_t],
-                          A[t, :],
-                          [linear, swirl, bubble],
-                          1 / self.M,
-                          (c1+c2)/2 if t%2 !=0  else c3)
-        #v.addRotation((6,np.pi * 2 / 6,1))
-        v.addFinal([kappa_t/100, 0.9932*lambda_t, -.927*gamma, 0.02591*alpha],
-                    [0.005,1,-0.002,0.005,0,1],
-                    [linear, spherical, bubble, swirl ])
+        lda = [1,0.2,1,0.2,1,0.2,1,0.2,1,0.2,1,0.2,0.5,0.75,0.5,0.75,0.5,0.75,0.5,0.75,0.5,0.75,0.5,0.75]
+
+        v.addRotation((24,2*np.pi/12,lda))
+
+
+        hh = np.mean(A,0)
+        hh = np.roll(hh, 1)
+        hh = 3*np.tanh(hh)
+
+        #v.addFinal([0.9,0.1+delta/5,0.1-delta/5],hh,[bubble, linear, spherical])
         self.variation = v
 
 
