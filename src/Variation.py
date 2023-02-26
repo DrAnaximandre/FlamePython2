@@ -3,15 +3,6 @@ from Function import Function
 from utils import rotation
 
 
-class VariationParameters(object):
-
-    def __init__(self, N = 100000):
-
-        self.N = N
-
-    def __str__(self):
-
-        return(f"{self.N}")
 
 class Variation:
     '''
@@ -32,7 +23,7 @@ class Variation:
         the cumulative probability to have each of the functions.
     '''
 
-    def __init__(self, N: VariationParameters):
+    def __init__(self, N: int):
         self.Nfunctions = 0  # the number of functions in the Variation
         self.functions = []  # a list where the functions are stored
         self.vproba = [0]  # a list of probabilities, see doc
@@ -153,6 +144,7 @@ class Variation:
             elif type(self.rotation[i]) == tuple:
                 ncustom = self.rotation[i][0]
                 acustom = float(self.rotation[i][1])
-                coef = float(self.rotation[i][2])
+                coef = [float(b) for b in self.rotation[i][2]]
+                
                 resF = rotation(ncustom, acustom, resF, r, coef)
         return (resF)

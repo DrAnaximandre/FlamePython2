@@ -2,7 +2,7 @@ import numpy as np
 
 
 def linear(x, y):
-    return(np.column_stack((x, y)))
+    return(np.column_stack((x,y)))
 
 
 def swirl(x, y):

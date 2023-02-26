@@ -1,11 +1,23 @@
+from dataclasses import dataclass
+from functools import partial
 import numpy as np
 from Fractal import Fractal, FractalParameters
 from Additives import linear, bubble, swirl,pdj, spherical, sinmoche
 from quizz import quizz
-from Variation import Variation, VariationParameters
+from Variation import Variation
 from typing import Tuple
 
+from ImageMakers import BleuNoir, LinearBlossomReturns
+
 import PIL.ImageOps as pops
+
+from joblib import Parallel, delayed
+
+import glob
+from natsort import natsorted
+from moviepy.editor import *
+
+from LFOs import sLFO, tLFO
 
 
 class ImageParameters(object):
@@ -75,31 +87,35 @@ def make_quizz(name="key-book-swirl"):
         main_param, end = quizz(main_param, iteration, out)
 
 
-def make_final():
-    burn = 20
-    niter = 50
-    zoom = 1
-    N = 15000
+def make_final(N = 10000):
+    FPs = FractalParameters(
+        burn=5,
+        niter = 50,
+        zoom = 0.5,
+        dx = 0.5,
+        dy = 0,
+        final_rot = 1
+    )
 
     a1 = np.array([0, 1, 0, 0, 0, 1])
-    a2 = np.array([1, 1, 0, 0, 0, 1])
+    a2 = np.array([1, 1, 0, 0.5, 0, 1])
     a3 = np.array([0, 1, 0, 1, 0, 1])
 
-    F1 = Fractal(burn, niter, zoom)
-
     v1 = Variation(N)
-    v1.addFunction([.5], a1, [linear], .2, [255, 0, 0])
-    v1.addFunction([-0.5], a2, [linear], .2, [0, 255, 0])
-    v1.addFunction([.5], a3, [linear], .2, [0, 0, 255])
+    v1.addFunction([.5, 0.1], a1, [linear, swirl], .2, [255, 0, 0])
+    v1.addFunction([-0.5, 0.5], a2, [linear, bubble], .2, [50, 255, 10])
+    v1.addFunction([.5, -1 ], a3, [swirl, linear], .2, [0, 0, 255])
 
-    v1.addFinal([0.95], [-0.5, 0.0003, 1, 0.5, 1, -0.005], [linear])
-    F1.addVariation(v1)
-    F1.build()
+    v1.addFinal([0.3, 1], [-0.5, 0.3, 1, 0.5, 1, -0.5], [swirl, bubble])
+
+    F1 = Fractal(FPs, [v1])
+
     print("Running")
-    F1.runAll()
+    F1.run()
     print("Generating the image")
     out, bitmap = F1.toImage(
-        1024, coef_forget=0.9,
+        1024, coef_forget=0.3,
+        coef_intensity=1.0,
         optional_kernel_filtering=False)
     out.save("final.png")
 
@@ -557,13 +573,17 @@ def contrary_motion(i=0, save=True):
         out.save(f"{name}-{i * 1000}.png")
 
 
-def short_restart(i=0, save=True):
-    name = "short_restart"
+def short_restart(i=0, name="short_restart", save=True):
+
+    folder_name = f"../images/{name}/"
+    # create the folder if it does not exist
+    if not os.path.exists(folder_name):
+        os.makedirs(folder_name)
 
     burn = 20
     niter = 50
     zoom = 1
-    N = 25000
+    N = 2500
 
     a1 = np.array([0, 1, 0.25 * (1 - np.cos(i * np.pi * 4)), 0, 0, 1])
     a2 = np.array([1, 1, 0, 0.25 * (1 - np.cos(i * np.pi * 8)), 0, 1])
@@ -573,7 +593,7 @@ def short_restart(i=0, save=True):
     a9 = np.array([0, 1, 0.25 * (1 - np.cos(i * np.pi * 4)), -1, 0, 1])
 
     z_ = (1 + np.cos(i * np.pi * 4)) / 2
-    zf_ = (1 + np.cos(i * np.pi * 2)) / 2
+    zf_ = (1 + np.cos(i * np.pi * 2)) / 2 - 1
     o_ = (1 + np.sin(i * np.pi * 2)) / 2
 
     c1 = [209, 34, 41]
@@ -597,10 +617,9 @@ def short_restart(i=0, save=True):
     v2.addFunction([.5, 0.5 * np.sin(i * np.pi * 2)], a3, [linear, swirl], .25, c6)
     v2.addRotation((1, -np.pi * 2 * i, 1))
 
-
     v3 = Variation(N)
     v3.addFunction([.5, 0.5 * (1 - np.cos(i * np.pi * 2))], a1, [linear, swirl], .25, c6)
-    v3.addFunction([.5], a8, [linear], .25,  c2)
+    v3.addFunction([.5, zf_], a8, [linear, bubble], .25,  c2)
     v3.addFunction([.5, 0.25 * np.sin(i * np.pi * 2)], a9, [linear, swirl], .25, c3)
 
 
@@ -613,9 +632,7 @@ def short_restart(i=0, save=True):
     F1P = FractalParameters(burn, niter, zoom, 0.0, 0.0,0)
     F1 = Fractal(F1P, [v1, v2, v3, v4])
 
-    print("Running")
     F1.run()
-    print("Generating the image")
     out, bitmap = F1.toImage(
         600
         ,
@@ -623,14 +640,16 @@ def short_restart(i=0, save=True):
         coef_intensity=0.8,
         optional_kernel_filtering=False)
     if save:
-        out.save(f"{name}-{i * 250}.png")
+        out.save(f"{folder_name}{name}-{i * 250}.png")
 
-def uff(i=0, save=True):
+def uff(i=0, name="uff", save=True):
 
+    folder_name = f"../images/{name}/"
+    # create the folder if it does not exist
+    if not os.path.exists(folder_name):
+        os.makedirs(folder_name)
 
-    name = "uffi"
-
-    burn = 20
+    burn = 10
     niter = 50
     N = 25000
 
@@ -640,11 +659,9 @@ def uff(i=0, save=True):
     o_ = (1 + np.sin(i * np.pi * 16)) / 2 # commence à 05
     of_ = (1 + np.cos(i * np.pi * 4 + 2*np.pi/2)) / 2 # commence à 0
 
-
-    a1 = np.array([1, z_, 0, 1, 0, 1])
+    a1 = np.array([1, z_, 0, of_*np.sqrt(3), 0, 1])
     a2 = np.array([z_, 1, 0, of_, 0, 1])
-    a3 = np.array([of_, 1, 0, 1, 0, 1])
-
+    a3 = np.array([of_, 1, 0, 1, o_, 1])
 
     c1 = [255, 255, 255]
     c2 = [200, 200, 200]
@@ -653,17 +670,15 @@ def uff(i=0, save=True):
     v1 = Variation(N)
     v1.addFunction([.5, of_*2], a1, [linear, swirl], .25, c1)
     v1.addFunction([.5], a2, [linear], .25, c2)
-    v1.addFunction([.5, of_], a3, [linear, swirl], .25,  c3)
-    v1.addFunction([ o_, of_], a3+a2, [swirl, bubble], of_, c3)
-    v1.addRotation(90)
-    v1.addFinal([0.4,0.1*zf_],(a1+a2+a3)/3,[linear, spherical])
+    v1.addFunction([.5, of_], a3, [pdj, swirl], .25,  c3)
+    v1.addFunction([ o_, of_], a3+np.sqrt(2)*a2, [swirl, linear], of_, c3)
+    v1.addRotation(120*i)
+    v1.addFinal([0.4, 0.1*zf_],(a1+a2+a3)/3,[linear, swirl])
 
     F1P = FractalParameters(burn, niter, 1
-                            , 0.0, 0.0, 0)
+                            ,0.0, 0.0, 90)
     F1 = Fractal(F1P, [v1])
 
-
-    print("Running")
     F1.run()
     print("Generating the image")
     out, bitmap = F1.toImage(
@@ -672,31 +687,115 @@ def uff(i=0, save=True):
         coef_intensity=0.8,
         optional_kernel_filtering=False)
     if save:
-        out.save(f"{name}-{i * 250}.png")
+        out.save(f"{folder_name}{name}-{i * 250}.png")
 
+
+def do_short_restart_video_demo():
+
+    fps = 25
+    n_im = 250
+    name = "demo"
+
+    Parallel(n_jobs=-2)(
+        delayed(partial(short_restart, name=name))(
+            (i) / n_im) for i in range(n_im + 1)
+    )
+
+    base_dir = os.path.realpath(f"../images/{name}/")
+    file_list = glob.glob(f'{base_dir}/{name}*.png')
+    file_list_sorted = natsorted(file_list, reverse=False)
+
+    clips = [ImageClip(m).set_duration(1 / fps)
+             for m in file_list_sorted]
+
+    concat_clip = concatenate_videoclips(clips, method="compose")
+    concat_clip.write_videofile(f"{base_dir}/{name}.mp4", fps=fps)
+
+
+def do_gif(
+        image_generator,
+        name="video_demo",
+        n_im=50
+):
+    Parallel(n_jobs=-2)(
+        delayed(partial(image_generator, name=name))(
+            (i) / n_im) for i in range(n_im + 1)
+    )
+    base_dir = os.path.realpath(f"../images/{name}/")
+    file_list = glob.glob(f'{base_dir}/{name}*.png')
+    file_list_sorted = natsorted(file_list, reverse=False)
+
+    from PIL import Image
+
+
+    frames = [Image.open(image) for image in file_list_sorted]
+    frame_one = frames[0]
+    frame_one.save(f"{base_dir}/{name}.gif", format="GIF", append_images=frames,
+                       save_all=True, duration=85, loop=0)
+
+
+
+def do_video(
+        image_generator,
+        name="video_demo",
+        fps=25,
+        n_im = 25,
+):
+    Parallel(n_jobs=-2)(
+        delayed(partial(image_generator, name=name))(
+            (i) / n_im) for i in range(n_im + 1)
+    )
+    base_dir = os.path.realpath(f"../images/{name}/")
+    file_list = glob.glob(f'{base_dir}/{name}*.png')
+    file_list_sorted = natsorted(file_list, reverse=False)
+
+
+    clips = [ImageClip(m).set_duration(1 / fps)
+             for m in file_list_sorted]
+
+    concat_clip = concatenate_videoclips(clips, method="compose")
+    concat_clip.write_videofile(f"{base_dir}/{name}.mp4", fps=fps, codec="libx264")
+
+from ImageFromParameters import ImageFromParameters
+
+def do_video_with_image_from_parameters():
+    fps = 35
+    n_im = 10*fps
+    name = "beta"
+    vh_kind = "demo"
+
+    images_to_generate = [ImageFromParameters(
+        i,
+        n_im,
+        name=name,
+        vh_kind=vh_kind,
+        save=True,
+        burn=10,
+        niter=50,
+        N=100000,
+        zoom=1 + sLFO(min=0, max=1, phase=0, speed=2 * np.pi)(i/n_im),
+        x= 0,
+        y= 0,
+        angle= 0,# np.pi*2*i/n_im
+    ) for i in range(n_im + 1)]
+
+
+
+    Parallel(n_jobs=-2)(
+        delayed(images_to_generate[i].generate)() for i in range(n_im + 1)
+    )
+
+    base_dir = os.path.realpath(f"../images/{name}/")
+    file_list = glob.glob(f'{base_dir}/{name}*.png')
+    file_list_sorted = natsorted(file_list, reverse=False)
+
+    clips = [ImageClip(m).set_duration(1 / fps)
+             for m in file_list_sorted]
+
+    concat_clip = concatenate_videoclips(clips, method="compose")
+    concat_clip.write_videofile(f"{base_dir}/{name}.mp4", fps=fps, codec="libx264")
 
 
 if __name__ == '__main__':
 
-    from joblib import Parallel, delayed
-    n_im = 250
-    Parallel(n_jobs=-2)(delayed(uff)((i)/n_im) for i in range(n_im+1))
-
-
-    import glob
-    from natsort import natsorted
-    from moviepy.editor import *
-
-    base_dir = os.path.realpath(".")
-    print(base_dir)
-
-    fps = 25
-
-    file_list = glob.glob('uffi*.png')  # Get all the pngs in the current directory
-    file_list_sorted = natsorted(file_list, reverse=False)  # Sort the images
-
-    clips = [ImageClip(m).set_duration(1/25)
-             for m in file_list_sorted]
-
-    concat_clip = concatenate_videoclips(clips, method="compose")
-    concat_clip.write_videofile("uffi.mp4", fps=fps)
+    do_video_with_image_from_parameters()

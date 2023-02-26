@@ -37,6 +37,7 @@ class Function:
         x_loc = np.dot(points, self.params[:3])
         y_loc = np.dot(points, self.params[3:])
         res = np.zeros((N_points, 2))
+
         for i in range(len(self.weights)):
             res += self.weights[i] * self.additives[i](x_loc, y_loc)
         return res

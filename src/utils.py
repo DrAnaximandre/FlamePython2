@@ -1,4 +1,5 @@
 import numpy as np
+from numba import njit
 from tqdm import tqdm
 
 def rotation(ncuts, angle, resF, r, coef=1):
@@ -17,19 +18,30 @@ def rotation(ncuts, angle, resF, r, coef=1):
     """
     rot = np.matrix(
         [[np.cos(angle), - np.sin(angle)], [np.sin(angle), np.cos(angle)]])
-    for i in range(ncuts):
+    
+    if type(coef)==int:
+        coef = [coef]
+    for i, c in enumerate(coef):
+        precut = i/ncuts
         cut = (i + 1) / ncuts
-        sel = np.where(r < cut)[0]
-        resF[sel, :] = coef * np.dot(resF[sel, :], rot)
+        sel = np.where((r<cut) & (r>precut))[0] 
+        for j in range(i+1):
+            if j==0:
+                resF[sel, :] = c * np.dot(resF[sel, :], rot)
+            else:
+                resF[sel, :] = np.dot(resF[sel, :], rot)
+            
+            
     return(resF)
 
 
+@njit(fastmath=True)
 def renderImage(F_loc, C, bitmap, intensity, goods, coef_forget):
     ''' this renders the image
         '''
     cf1 = coef_forget + 1
     C = C * coef_forget / cf1
-    for i in tqdm(goods):
+    for i in goods:
         ad0 = F_loc[i, 0]
         ad1 = F_loc[i, 1]
         bitmap[ad0, ad1] /= cf1
