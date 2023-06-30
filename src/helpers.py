@@ -760,8 +760,8 @@ from ImageFromParameters import ImageFromParameters
 
 def do_video_with_image_from_parameters():
     fps = 35
-    n_im = 10*fps
-    name = "beta"
+    n_im = 30*fps
+    name = "demo"
     vh_kind = "demo"
 
     images_to_generate = [ImageFromParameters(
@@ -770,13 +770,13 @@ def do_video_with_image_from_parameters():
         name=name,
         vh_kind=vh_kind,
         save=True,
-        burn=10,
-        niter=50,
+        burn=5,
+        niter=45,
         N=100000,
-        zoom=1 + sLFO(min=0, max=1, phase=0, speed=2 * np.pi)(i/n_im),
+        zoom= 10, #5 + sLFO(min=0, max=5, phase=3*np.pi/2, speed=2 * np.pi)(i/n_im) + tLFO(min=0, max=0.25,speed=16*np.pi, width=0.76)(i/n_im) + tLFO(min=0, max=0.125,speed=16*np.pi, width=0.876)(i/n_im),
         x= 0,
         y= 0,
-        angle= 0,# np.pi*2*i/n_im
+        angle=0#np.pi*2*i/n_im,
     ) for i in range(n_im + 1)]
 
 
