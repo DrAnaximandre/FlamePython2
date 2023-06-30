@@ -33,11 +33,11 @@ class ImageFromParameters:
             os.makedirs(folder_name)
 
     def generate(self,
-                 coef_forget=1.153927,
-                 coef_intensity=1.8092508,
+                 coef_forget=0.153927,
+                 coef_intensity=1.088092508, # was 1.8 for size 2048
                  optional_kernel_filtering=False,
                  verbose: bool = False,
-                 size=2048):
+                 size=3000):
         F1P = FractalParameters(self.burn, self.niter, self.zoom, self.x, self.y, self.angle, verbose)
 
         F1 = Fractal(F1P, [self.vh])
