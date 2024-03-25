@@ -1,6 +1,9 @@
 *.pyc
 *.png
 *.gif
+*.mp4
+*.jpg
+
 *.lprof
 __pycache__/
 save
