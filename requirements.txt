@@ -6,3 +6,4 @@ natsort
 moviepy
 joblib
 numba
+scipy
