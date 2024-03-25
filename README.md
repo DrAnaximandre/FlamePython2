@@ -1,10 +1,8 @@
 # FlamePython2
 
-This is a Python implementation of the [Flames Fractals](http://flam3.com/flame_draves.pdf).
+This is a Python implementation of the [Flames Fractals](http://flam3.com/flame_draves.pdf) algorithm.
 
-This repository contains an implementation of the Fractal Flame algorithm, a member of the Iterated Function System (IFS) class of fractal algorithms.
-
-The Fractal Flame algorithm is a two-dimensional IFS that creates images by plotting the output of a chaotic attractor directly on the image plane. This algorithm is distinguished by its use of non-linear functions, log-density display, and structural coloring, which together result in a wide range of visually interesting images.
+The Fractal Flame algorithm is a two-dimensional Iterated Function System (IFS) that creates images by plotting the output of an attractor on the image plane. This algorithm is distinguished by its use of non-linear functions, log-density display, and structural coloring, which together result in a wide range of visually interesting images.
 
 To use this implementation, clone the repository and follow the instructions in the README.md file within the repository. 
 
