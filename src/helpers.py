@@ -758,11 +758,11 @@ def do_video(
 
 from ImageFromParameters import ImageFromParameters
 
-def do_video_with_image_from_parameters():
-    fps = 35
-    n_im = 30*fps
-    name = "demo"
-    vh_kind = "demo"
+def do_video_with_image_from_parameters(size=512):
+    fps = 25
+    n_im = 12*fps
+    name = "raton"
+    vh_kind = "raton"
 
     images_to_generate = [ImageFromParameters(
         i,
@@ -770,13 +770,14 @@ def do_video_with_image_from_parameters():
         name=name,
         vh_kind=vh_kind,
         save=True,
-        burn=5,
-        niter=45,
-        N=100000,
-        zoom= 10, #5 + sLFO(min=0, max=5, phase=3*np.pi/2, speed=2 * np.pi)(i/n_im) + tLFO(min=0, max=0.25,speed=16*np.pi, width=0.76)(i/n_im) + tLFO(min=0, max=0.125,speed=16*np.pi, width=0.876)(i/n_im),
+        burn=10,
+        niter=30,
+        N=200000,
+        zoom=1,
         x= 0,
         y= 0,
-        angle=0#np.pi*2*i/n_im,
+        angle= 0,#i/n_im*2*np.pi,
+        size=size,
     ) for i in range(n_im + 1)]
 
 
@@ -798,4 +799,4 @@ def do_video_with_image_from_parameters():
 
 if __name__ == '__main__':
 
-    do_video_with_image_from_parameters()
+    do_video_with_image_from_parameters(size=1440)

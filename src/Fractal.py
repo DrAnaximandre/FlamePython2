@@ -83,7 +83,6 @@ class Fractal:
         for i in np.arange(self.fractal_parameters.burn):
             self.run1iter(0, True)
         for i in np.arange(1,self.fractal_parameters.niter -1):
-            # print("no burn")
             self.run1iter(i, False)
         self.F = self.F * self.fractal_parameters.zoom
 
@@ -96,7 +95,7 @@ class Fractal:
                 verbose=0):
 
         imgtemp = Image.new('RGB', (sizeImage, sizeImage), "black")
-        bitmap = np.array(imgtemp).astype(np.float)
+        bitmap = np.array(imgtemp).astype(float)
         intensity = np.zeros((sizeImage, sizeImage))
 
         ## applying offset at the Fractal level
@@ -134,8 +133,7 @@ class Fractal:
         if verbose > 0:
             print("    nmax: " + str(int(nmax)))
             print("    inmax: " + str(inmax))
-        intensity = np.power(np.log(intensity + 1
-                                    ) / np.log(nmax + 1), coef_intensity)
+        intensity = np.power(np.log(intensity + 1) / np.log(nmax + 1), coef_intensity)
 
         bitmap = np.uint8(bitmap * np.reshape(np.repeat(intensity,3), (sizeImage,sizeImage,3)))
 
