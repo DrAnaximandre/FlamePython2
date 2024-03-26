@@ -1,6 +1,6 @@
 import numpy as np
 
-
+@dataclass
 class Function:
     '''
         Defines a Function to be applied to the coordinates
@@ -9,7 +9,7 @@ class Function:
         Parameters:
             - weights : it's a list of weights that are applied
                 to each parameters for each Additi=ve.
-            - params : a list of lenght 6.
+            - params : an array of second dimension 6.
                 The 3 first are the coefficients for resp. a constant, x,
                 and y to form the x of the vector that goes in the additives.
                   Same for [3:6] that forms the y.

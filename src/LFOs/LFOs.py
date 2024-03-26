@@ -4,18 +4,6 @@ from scipy import signal
 
 
 
-def LFO(t:float):
-    """
-    Low frequency oscillator
-    Args:
-        t: time
-
-    Returns:
-
-    """
-    return np.sin(t * 2 * np.pi)
-
-
 @dataclass
 class sLFO(object):
 
