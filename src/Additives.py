@@ -1,12 +1,12 @@
 import numpy as np
 import cv2
 
-rac = cv2.imread("raclute2.png")
+rac = cv2.imread("sp.jpg")
 size = 1440
 rac = cv2.resize(rac, (size,size))
 
 # invert rac
-rac = 255 - rac
+# rac = 255 - rac
 imgray = cv2.cvtColor(rac, cv2.COLOR_BGR2GRAY)
 ret, thresh = cv2.threshold(imgray, 50, 255, 0)
 
@@ -20,9 +20,10 @@ contour = np.concatenate(contour)
 cont = contour
 cont = np.concatenate((cont[:,:,1],cont[:,:,0]),1)
 
-subset = 15
+subset = 200 # adapt to your image
 smaller_contour = cont[::subset]
 smaller_contour = smaller_contour
+print(smaller_contour.shape)
 
 def raton(x,y):
     

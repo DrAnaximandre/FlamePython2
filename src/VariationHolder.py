@@ -53,9 +53,9 @@ class VariationHolder:
 
         C = np.concatenate((R, B, G), axis=0)
         alpha = sLFO(max=0.5,speed=16*np.pi,min=0)(self.i_rat)
-        alpha1 = sLFO(max=1,min=0, speed=8*np.pi,phase=1)(self.i_rat)
-        alpha2 = sLFO(max=2,min=0, speed=4*np.pi,phase=2)(self.i_rat)
-        alpha3 = sLFO(max=3,min=0, speed=2*np.pi,phase=3)(self.i_rat)
+        alpha1 = sLFO(max=0.75,min=0, speed=8*np.pi,phase=1)(self.i_rat)
+        alpha2 = sLFO(max=1,min=0, speed=4*np.pi,phase=2)(self.i_rat)
+        alpha3 = sLFO(max=1.5,min=0, speed=2*np.pi,phase=3)(self.i_rat)
 
         beta = tLFO(phase=2,width=0.787,min=0.8,max=1.1)(self.i_rat) + tLFO(speed=4*np.pi,phase=0,width=0.187,max=0.12)(self.i_rat)
         beta0 = tLFO(phase=0,width=0.787,min=0.8,max=1.1)(self.i_rat) + tLFO(speed=4*np.pi,phase=2,width=0.187,max=0.12)(self.i_rat)
