@@ -173,7 +173,7 @@ def BleuNoir( #i=0,  # frame number
 
 
 
-from LFOs import *
+from LFOs.LFOs import *
 
 
 def create_folder(folder_name):

@@ -1,10 +1,9 @@
 from dataclasses import dataclass
 from functools import partial
 
-import numpy as np
+
 
 from Additives import spherical, linear, bubble, swirl, expinj, sinmoche, pdj, raton
-from Variation import Variation
 from LFOs import sLFO, tLFO
 
 

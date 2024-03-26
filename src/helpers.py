@@ -17,7 +17,7 @@ import glob
 from natsort import natsorted
 from moviepy.editor import *
 
-from LFOs import sLFO, tLFO
+from LFOs.LFOs import sLFO, tLFO
 
 
 class ImageParameters(object):

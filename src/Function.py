@@ -8,7 +8,7 @@ class Function:
 
         Parameters:
             - weights : it's a list of weights that are applied
-                to each parameters for each Additi=ve.
+                to each parameters for each Additive.
             - params : an array of second dimension 6.
                 The 3 first are the coefficients for resp. a constant, x,
                 and y to form the x of the vector that goes in the additives.
