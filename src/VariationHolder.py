@@ -4,7 +4,7 @@ from functools import partial
 
 
 from Additives import spherical, linear, bubble, swirl, expinj, sinmoche, pdj, raton
-from LFOs import sLFO, tLFO
+#from LFOs import sLFO, tLFO
 
 
 cr1 = [255, 0, 0]

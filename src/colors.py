@@ -1,3 +1,6 @@
+import numpy as np
+from dataclasses import dataclass
+
 cr1 = [255, 0, 0]
 cr2 = [255, 64, 64]
 cr3 = [255, 128, 128]

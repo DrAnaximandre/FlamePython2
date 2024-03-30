@@ -1,4 +1,6 @@
-from LFOs import sLFO, tLFO
+from LFOs.LFOs import sLFO, tLFO
+from dataclasses import dataclass
+import numpy as np
 
 @dataclass
 class LFOSet():
