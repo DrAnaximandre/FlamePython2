@@ -47,11 +47,13 @@ class VariationHolder:
 
     def generate(self):
 
-        R = np.roll(np.array([cr1, cr6, cr3, cr5, cr4, cr2]), 3)
-        B = np.roll(np.array([cb1, cb2, cb3, cb4, cb5, cb6]), 2)
+        R = np.array([cr1, cr6, cr3, cr5, cr4, cr2])
+        B = np.array([cb1, cb2, cb3, cb4, cb5, cb6])
         G = np.array([cg1, cg2, cg3, cg4, cg5, cg6])
 
-        C = np.concatenate((R, B, G), axis=0)
+        C = np.concatenate((R, G, B), axis=0)
+        
+        
         alpha = sLFO(max=0.5,speed=16*np.pi,min=0)(self.i_rat)
         alpha1 = sLFO(max=0.75,min=0, speed=8*np.pi,phase=1)(self.i_rat)
         alpha2 = sLFO(max=1,min=0, speed=4*np.pi,phase=2)(self.i_rat)
@@ -197,3 +199,37 @@ class VariationHolder:
 
 
             self.variation = v1
+
+        elif self.kind == "sp":
+            
+            # do a matrix of sLFOs, row is for the speed, column is for the phase
+
+            alphas = np.array([[sLFO(min=0, max=1, speed=np.power(2,j+1)*np.pi, phase=i)(self.i_rat) for j in range(6)] for i in range(4)])
+    
+
+            v1 = Variation(self.N)  
+
+            np.random.seed(12)
+            A = np.random.rand(24,6)*2-1
+            
+            A[np.abs(A)<0.4]=0
+
+            for t in range(6):
+                
+                v1.addFunction([0.5, alphas[0,1]], A[t], [spherical, linear], 1, C[t*t%18])
+
+            for t in range(6,12):
+                
+                v1.addFunction([-0.5, alphas[1,2]], 1.2*A[t], [expinj, pdj], 1, C[t*t%18])
+
+            for t in range(12,18):
+                    
+                v1.addFunction([0.5, 0.1+0.1*alphas[1,3]], 1.05*A[t], [bubble, linear], 1, C[t*t%18])
+
+            for t in range(18,24):
+                v1.addFunction([0.5, 0.2+0.5*alphas[0,1]], 2*A[t], [bubble, spherical], 1, C[t*t%18])
+
+            v1.addFinal([1], np.array([0,1,0.2,0,-0.2,1]), [raton])
+
+            self.variation = v1
+

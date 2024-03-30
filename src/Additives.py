@@ -1,12 +1,12 @@
 import numpy as np
 import cv2
 
-rac = cv2.imread("sp.jpg")
+rac = cv2.imread("spsmall.png")
 size = 1440
 rac = cv2.resize(rac, (size,size))
 
 # invert rac
-# rac = 255 - rac
+rac = 255 - rac
 imgray = cv2.cvtColor(rac, cv2.COLOR_BGR2GRAY)
 ret, thresh = cv2.threshold(imgray, 50, 255, 0)
 

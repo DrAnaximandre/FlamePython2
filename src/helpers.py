@@ -760,9 +760,9 @@ from ImageFromParameters import ImageFromParameters
 
 def do_video_with_image_from_parameters(size=512):
     fps = 25
-    n_im = 12*fps
-    name = "raton"
-    vh_kind = "raton"
+    n_im = 20*fps
+    name = "sp2"
+    vh_kind = "sp"
 
     images_to_generate = [ImageFromParameters(
         i,
@@ -773,7 +773,7 @@ def do_video_with_image_from_parameters(size=512):
         burn=10,
         niter=30,
         N=200000,
-        zoom=1,
+        zoom=0.8,
         x= 0,
         y= 0,
         angle= 0,#i/n_im*2*np.pi,
