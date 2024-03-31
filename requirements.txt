@@ -7,3 +7,4 @@ moviepy
 joblib
 numba
 scipy
+opencv-python
