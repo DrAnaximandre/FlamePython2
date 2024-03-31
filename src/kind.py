@@ -6,6 +6,12 @@ import numpy as np
 from PIL import Image
 from Additives import spherical, linear, bubble, swirl, expinj, sinmoche, pdj, raton
 from numba import njit
+from moviepy.editor import *
+
+import glob
+from natsort import natsorted
+
+from joblib import Parallel, delayed
 
 @dataclass
 class FunctionMapping():
@@ -50,6 +56,7 @@ class FunctionMapping():
  
     def construct_probas(self):
         self.relative_probabilites = [0] + [sum(self.probabilites[:i+1]) for i in range(len(self.probabilites))]
+        self.relative_probabilites /= self.relative_probabilites[-1]
         
 
     def construct(self):
@@ -159,7 +166,7 @@ class VH():
             result_xy, bitmap, intensity, goods)
 
         nmax = np.amax(intensity)
-        print(nmax)
+        
         intensity = np.power(np.log(intensity + 1) / np.log(nmax + 1), 1)
 
         bitmap = np.uint8(bitmap * np.reshape(np.repeat(intensity,3), (size,size,3)))
@@ -184,37 +191,75 @@ class VH():
         return bitmap, intensity
 
 
+
+
+def do_video_with_image_from_parameters(size=512):
+    fps = 25
+    n_im = 5*fps
+    name = "test"
+
+    images_to_generate = [ImageHolder(
+        i,
+        n_im,
+        name=name,
+        size=size,
+    ) for i in range(n_im + 1)]
+
+    Parallel(n_jobs=-2)(
+        delayed(images_to_generate[i].run)() for i in range(n_im + 1)
+    )
+
+    base_dir = os.path.realpath(f"../images/{name}/")
+    file_list = glob.glob(f'{base_dir}/{name}*.png')
+    file_list_sorted = natsorted(file_list, reverse=False)
+
+    clips = [ImageClip(m).set_duration(1 / fps)
+             for m in file_list_sorted]
+
+    concat_clip = concatenate_videoclips(clips, method="compose")
+    concat_clip.write_videofile(f"{base_dir}/{name}.mp4", fps=fps, codec="libx264")
+
+
+@dataclass
+class ImageHolder():
+    
+    i: int = 0
+    n_im: float = 0
+    size: int = 1000
+    name: str = "test"
+    
+    def __post_init__(self):
+        self.ratio = self.i/self.n_im
+        self.folder_name = f"../images/{self.name}/"
+        self.create_folder(self.folder_name)
+
+
+        l = LFOSet(ratio=self.ratio)
+        c = Color()
+        colors = [c.B[0], c.B[3], c.B[2]]
+    
+        weights = [[0.55], [0.5], [0.5,0.3001,0.12004],[-2]]
+        additives = [[linear], [linear], [linear, bubble, spherical], [linear]]
+        Ax = np.array([[0,1,l.alpha0],[1,1,0],[0,1,0],[0,1,0]])
+        Ay = np.array([[0,l.alpha0,1],[0,0,1],[1,0,1],[0,0,1]])
+        probabilites = [0.2+l.alpha3, 0.3+l.alpha1, 0.5+l.alpha2/5]
+        
+        fm = FunctionMapping(l, colors, weights, additives, Ax, Ay, probabilites)
+
+        self.vh = VH([fm],15,30, 50000)
+
+    def create_folder(self, folder_name):
+        if not os.path.exists(folder_name):
+            os.makedirs(folder_name)
+
+    def run(self):
+        result = self.vh.run()
+        out, bitmap = self.vh.to_image(result, 1000)
+        out.save(f"{self.folder_name}{self.name}-{self.i}.png")
+
 if __name__ == "__main__":
 
-    l = LFOSet(0)
-    c = Color()
-    colors = [c.B[0], c.B[3], c.B[2]]
-   
-    weights = [[0.55], [0.5], [0.5,0.3001,0.2004],[-2]]
-    additives = [[linear], [linear], [linear, bubble, spherical], [linear]]
-    Ax = np.array([[0,1,l.alpha0],[1,1,0],[0,1,0],[0,1,0]])
-    Ay = np.array([[0,l.alpha0,1],[0,0,1],[1,0,1],[0,0,1]])
-    probabilites = [0.2, 0.3, 0.5]
-
-    fm = FunctionMapping(l, colors, weights, additives, Ax, Ay, probabilites)
+    do_video_with_image_from_parameters()
 
 
-    l2 = LFOSet(0.5)
-
-    colors2 = [c.R[0], c.R[2], c.R[1]]
-    weights = [[0.2, 0.5], [0.5], [0.0021,0.2001,0.24],[0.0023]]
-    additives = [[linear, bubble], [spherical], [swirl, linear, spherical], [bubble]]
-    Ax = np.array([[0,1,0],[1,1,0],[0,1,0],[0,1,0]])
-    Ay = np.array([[0,0,1],[0,0,1],[1,0,1],[0,0,1]])
-    probabilites = [0.4, 0.5, 0.15]
-    fm2 = FunctionMapping(l, colors2, weights, additives, Ax, Ay, probabilites)
-
-    vh = VH([fm, fm2],20,35, 25000)
-
-    result = vh.run()
-    out, bitmap = vh.to_image(result, 400)
-    import matplotlib.pyplot as plt
-
-    print(bitmap.max())
-    plt.imshow(out)
-    plt.show()
+       
