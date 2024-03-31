@@ -761,8 +761,8 @@ from ImageFromParameters import ImageFromParameters
 def do_video_with_image_from_parameters(size=512):
     fps = 25
     n_im = 12*fps
-    name = "raton"
-    vh_kind = "raton"
+    name = "test"
+    vh_kind = "test"
 
     images_to_generate = [ImageFromParameters(
         i,
@@ -798,5 +798,29 @@ def do_video_with_image_from_parameters(size=512):
 
 
 if __name__ == '__main__':
+    
+    from time import time
+    times = []
+    for i in range(5):
+        t0 = time()
 
-    do_video_with_image_from_parameters(size=1440)
+        ip = ImageFromParameters(
+            i+5,
+            5,
+            "test",
+            "test",
+            save=True,
+            burn=15,
+            niter=30,
+            N=5000,
+            zoom=1,
+            x=0,
+            y=0,
+            angle=0,
+            size=1000)
+
+        ip.generate()
+        t1 = time()
+        times.append(t1-t0)
+
+    print(f"Mean time: {np.mean(times)}")

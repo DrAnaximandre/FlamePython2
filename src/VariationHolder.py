@@ -1,6 +1,13 @@
 from dataclasses import dataclass
 from functools import partial
 
+import numpy as np
+from PIL import Image
+from Variation import Variation
+
+
+from LFOs.LFOs import sLFO, tLFO
+
 
 
 from Additives import spherical, linear, bubble, swirl, expinj, sinmoche, pdj, raton
@@ -47,7 +54,7 @@ class VariationHolder:
     def generate(self):
 
         R = np.roll(np.array([cr1, cr6, cr3, cr5, cr4, cr2]), 3)
-        B = np.roll(np.array([cb1, cb2, cb3, cb4, cb5, cb6]), 2)
+        B = np.array([cb1, cb2, cb3, cb4, cb5, cb6])
         G = np.array([cg1, cg2, cg3, cg4, cg5, cg6])
 
         C = np.concatenate((R, B, G), axis=0)
@@ -148,6 +155,20 @@ class VariationHolder:
 
             self.variation = v1
             #self.variation = v
+
+        elif self.kind == "test":
+
+            a1 = np.array([0,1,0,0,0,1])
+            a2 = np.array([1,1,0,0,0,1])
+            a3 = np.array([0,1,0,1,0,1])
+
+            v1 = Variation(self.N)
+
+            v1.addFunction([0.55], a1, [linear], 0.1, B[0])
+            v1.addFunction([0.5], a2, [linear], 0.1, B[3])
+            v1.addFunction([0.5,0.1], a3, [linear, spherical], 0.1, B[2])
+
+            self.variation = v1
 
         elif self.kind == "raton":
 

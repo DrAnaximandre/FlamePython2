@@ -23,6 +23,7 @@ class FunctionMapping():
     Ax: np.ndarray = None
     Ay: np.ndarray = None
     probabilites: list = None
+    final: bool = False
 
     def __post_init__(self):
         assert self.Ax.shape == self.Ay.shape
@@ -49,8 +50,8 @@ class FunctionMapping():
             result[selection, :] = self.apply_function(i, coordinates[selection, :])
         
         # final call
-        result = self.apply_final(result)
-        
+        if self.final:
+            result = self.apply_final(result)
 
         return result
  
@@ -67,7 +68,6 @@ class FunctionMapping():
         N_points = coordinates.shape[0]
         intercepts = np.ones((N_points, 1))
         points = np.concatenate((intercepts, coordinates[:,:2]), axis=1)
-
         return points
 
     def apply_function(self, i, coordinates):
@@ -81,8 +81,8 @@ class FunctionMapping():
             result_loc[:,:2] += self.weights[i][j] * self.additives[i][j](x_loc, y_loc)
         
         for j in range(3):
-            result_loc[:, j+2] = self.colors[i][j] + coordinates[:, j+2]*2
-            result_loc[:, j+2] /= 3
+            result_loc[:, j+2] = self.colors[i][j] + coordinates[:, j+2]
+            result_loc[:, j+2] /= 2
            
         return result_loc
         
@@ -181,12 +181,12 @@ class VH():
         ''' this renders the image
             '''
         cf1 = coef_forget + 1
+        result[:, 2:] = result[:, 2:] * coef_forget / cf1
         for i in goods:
             ad0 = result[i, 0]
             ad1 = result[i, 1]
             bitmap[ad0, ad1] /= cf1
-            
-            bitmap[ad0, ad1] += result[i, 2:] * coef_forget / cf1
+            bitmap[ad0, ad1] += result[i, 2:]
             intensity[ad0, ad1] += 1
         return bitmap, intensity
 
@@ -224,7 +224,7 @@ def do_video_with_image_from_parameters(size=512):
 class ImageHolder():
     
     i: int = 0
-    n_im: float = 0
+    n_im: float = 5
     size: int = 1000
     name: str = "test"
     
@@ -238,15 +238,15 @@ class ImageHolder():
         c = Color()
         colors = [c.B[0], c.B[3], c.B[2]]
     
-        weights = [[0.55], [0.5], [0.5,0.3001,0.12004],[-2]]
-        additives = [[linear], [linear], [linear, bubble, spherical], [linear]]
-        Ax = np.array([[0,1,l.alpha0],[1,1,0],[0,1,0],[0,1,0]])
-        Ay = np.array([[0,l.alpha0,1],[0,0,1],[1,0,1],[0,0,1]])
-        probabilites = [0.2+l.alpha3, 0.3+l.alpha1, 0.5+l.alpha2/5]
+        weights = [[0.55], [0.5], [0.5,0.1],[-2]]
+        additives = [[linear], [linear], [linear, spherical], [linear]]
+        Ax = np.array([[0,1,0],[1,1,0],[0,1,0],[0,1,0]])
+        Ay = np.array([[0,0,1],[0,0,1],[1,0,1],[0,0,1]])
+        probabilites = np.array([0.1, 0.1, 0.1])
         
         fm = FunctionMapping(l, colors, weights, additives, Ax, Ay, probabilites)
 
-        self.vh = VH([fm],15,30, 50000)
+        self.vh = VH([fm],15,30, 5000)
 
     def create_folder(self, folder_name):
         if not os.path.exists(folder_name):
@@ -254,12 +254,20 @@ class ImageHolder():
 
     def run(self):
         result = self.vh.run()
-        out, bitmap = self.vh.to_image(result, 1000)
+        out, _ = self.vh.to_image(result, 1000)
         out.save(f"{self.folder_name}{self.name}-{self.i}.png")
 
 if __name__ == "__main__":
 
-    do_video_with_image_from_parameters()
+    #do_video_with_image_from_parameters()
+    from time import time
+    times = []
+    for i in range(5):
+        t0 = time()
+        ih = ImageHolder(i)
+        ih.run()
+        t1 = time()
+        times.append(t1-t0)
 
-
+    print(f"Mean time: {np.mean(times)}")
        
