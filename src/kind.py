@@ -93,7 +93,7 @@ class FunctionMapping():
         y_loc = np.dot(points, self.Ay[-1,:])
 
         for j in range(len(self.weights[-1])):
-            result[:,:2] += self.weights[-1][j] * self.additives[-1][j](x_loc, y_loc)
+            result[:,:2] = self.weights[-1][j] * self.additives[-1][j](x_loc, y_loc)
         
         return result
 
@@ -224,7 +224,7 @@ def do_video_with_image_from_parameters(size=512):
 class ImageHolder():
     
     i: int = 0
-    n_im: float = 5
+    n_im: float = 20
     size: int = 1000
     name: str = "test"
     
@@ -238,13 +238,13 @@ class ImageHolder():
         c = Color()
         colors = [c.B[0], c.B[3], c.B[2]]
     
-        weights = [[0.55], [0.5], [0.5,0.1],[-2]]
-        additives = [[linear], [linear], [linear, spherical], [linear]]
+        weights = [[0.55], [0.5,-0.2], [0.5,0.1],[1, 0.2]]
+        additives = [[linear], [linear,bubble], [linear, spherical], [linear, bubble]]
         Ax = np.array([[0,1,0],[1,1,0],[0,1,0],[0,1,0]])
         Ay = np.array([[0,0,1],[0,0,1],[1,0,1],[0,0,1]])
         probabilites = np.array([0.1, 0.1, 0.1])
         
-        fm = FunctionMapping(l, colors, weights, additives, Ax, Ay, probabilites)
+        fm = FunctionMapping(l, colors, weights, additives, Ax, Ay, probabilites, final=False)
 
         self.vh = VH([fm],15,30, 5000)
 
@@ -262,7 +262,7 @@ if __name__ == "__main__":
     #do_video_with_image_from_parameters()
     from time import time
     times = []
-    for i in range(5):
+    for i in range(20):
         t0 = time()
         ih = ImageHolder(i)
         ih.run()

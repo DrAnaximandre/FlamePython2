@@ -165,10 +165,11 @@ class VariationHolder:
             v1 = Variation(self.N)
 
             v1.addFunction([0.55], a1, [linear], 0.1, B[0])
-            v1.addFunction([0.5], a2, [linear], 0.1, B[3])
+            v1.addFunction([0.5,-0.2], a2, [linear,bubble], 0.1, B[3])
             v1.addFunction([0.5,0.1], a3, [linear, spherical], 0.1, B[2])
 
             self.variation = v1
+
 
         elif self.kind == "raton":
 

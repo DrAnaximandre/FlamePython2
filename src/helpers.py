@@ -801,12 +801,12 @@ if __name__ == '__main__':
     
     from time import time
     times = []
-    for i in range(5):
+    for i in range(20):
         t0 = time()
 
         ip = ImageFromParameters(
-            i+5,
-            5,
+            i+20,
+            20,
             "test",
             "test",
             save=True,
