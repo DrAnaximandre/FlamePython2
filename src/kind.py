@@ -3,8 +3,9 @@ from LFOs.LFOSet import LFOSet
 from dataclasses import dataclass
 from colors import Color
 import numpy as np
-
+from PIL import Image
 from Additives import spherical, linear, bubble, swirl, expinj, sinmoche, pdj, raton
+from numba import njit
 
 @dataclass
 class FunctionMapping():
@@ -73,7 +74,8 @@ class FunctionMapping():
             result_loc[:,:2] += self.weights[i][j] * self.additives[i][j](x_loc, y_loc)
         
         for j in range(3):
-            result_loc[:, j+2] = self.colors[i][j]/2 + coordinates[:, j+2]/2
+            result_loc[:, j+2] = self.colors[i][j] + coordinates[:, j+2]*2
+            result_loc[:, j+2] /= 3
            
         return result_loc
         
@@ -89,76 +91,130 @@ class FunctionMapping():
         return result
 
 
+@dataclass
+class VH():
+    list_of_function_mappings: list
+    burn_steps: int
+    iterate_steps: int
+    N: int
+
+    def __post_init__(self):
+        self.total_N = self.N*len(self.list_of_function_mappings)
+
+    def run(self):
+        initial_coordinates  = self.burn()
+        
+        result = self.iterate(initial_coordinates)
+        return result
+
+    def burn(self):
+        
+        initial_coordinates = np.random.uniform(-1,1, (self.total_N, 2))
+        # it is the first time the coordinates are called, attach a color
+        initial_coordinates = np.concatenate((initial_coordinates, 255 * np.zeros((self.total_N, 3))), axis=1)
+
+        for _ in range(self.burn_steps):
+            for j, fm in enumerate(self.list_of_function_mappings):
+                initial_coordinates[j*self.N:(j+1)*self.N,:] = fm.call(initial_coordinates[j*self.N:(j+1)*self.N,:])
+
+        return initial_coordinates
+
+    def iterate(self, initial_coordinates):
+            
+            result = np.zeros((self.total_N*self.iterate_steps, 5))
+            for i in range(self.iterate_steps):
+                if i==0:
+                    result[:self.total_N,:] = initial_coordinates
+                else:
+                    result[i*self.total_N:(i+1)*self.total_N,:] = result[(i-1)*self.total_N:(i)*self.total_N,:]
+
+                for j, fm in enumerate(self.list_of_function_mappings):
+    
+                    idx_start = (i*self.total_N+j*self.N)
+                    idx_end = (i*self.total_N+(j+1)*self.N)
+                    result[idx_start: idx_end] =  fm.call(result[idx_start:idx_end])
+                    
+            return result
+
+    def to_image(self, result, size):
+
+        imgtemp = Image.new('RGB', (size, size), "black")
+        bitmap = np.array(imgtemp).astype(float)
+        intensity = np.zeros((size, size))
+
+        result_xy = (size * (result[:,:2] + 1) / 2)
+        result_xy = np.concatenate((result_xy, result[:,2:]), axis=1)
+        result_xy = result_xy.astype("i8")
+
+        conditions = np.zeros((result_xy.shape[0], 4), dtype='bool')
+        conditions[:, 0] = result_xy[:, 0] < size
+        conditions[:, 1] = result_xy[:, 0] > 0
+        conditions[:, 2] = result_xy[:, 1] < size
+        conditions[:, 3] = result_xy[:, 1] > 0
+
+        goods = np.where(np.all(conditions, 1))[0]
+
+
+        bitmap, intensity = self.renderImage(
+            result_xy, bitmap, intensity, goods)
+
+        nmax = np.amax(intensity)
+        print(nmax)
+        intensity = np.power(np.log(intensity + 1) / np.log(nmax + 1), 1)
+
+        bitmap = np.uint8(bitmap * np.reshape(np.repeat(intensity,3), (size,size,3)))
+
+        out = Image.fromarray(bitmap)
+        return(out, bitmap)
+
+
+    @staticmethod
+    @njit(fastmath=True)
+    def renderImage(result, bitmap, intensity, goods, coef_forget=1):
+        ''' this renders the image
+            '''
+        cf1 = coef_forget + 1
+        for i in goods:
+            ad0 = result[i, 0]
+            ad1 = result[i, 1]
+            bitmap[ad0, ad1] /= cf1
+            
+            bitmap[ad0, ad1] += result[i, 2:] * coef_forget / cf1
+            intensity[ad0, ad1] += 1
+        return bitmap, intensity
+
+
 if __name__ == "__main__":
 
-    l = LFOSet(0.9)
+    l = LFOSet(0)
     c = Color()
-    colors = [c.R[3], c.G[3], c.B[2]]
+    colors = [c.B[0], c.B[3], c.B[2]]
    
-    weights = [[0.5, 0.2], [0.5], [0.1,0.001,0.4],[0.3]]
-    additives = [[linear, swirl], [bubble], [linear, swirl, spherical], [linear]]
-    Ax = np.array([[1,0,l.alpha0],[1,1,0],[1,0,1],[1,l.alpha1,1]])
-    Ay = np.array([[-1,0,l.alpha2],[1,-1,0],[1,0,1],[1,l.alpha3,1]])
+    weights = [[0.55], [0.5], [0.5,0.3001,0.2004],[-2]]
+    additives = [[linear], [linear], [linear, bubble, spherical], [linear]]
+    Ax = np.array([[0,1,l.alpha0],[1,1,0],[0,1,0],[0,1,0]])
+    Ay = np.array([[0,l.alpha0,1],[0,0,1],[1,0,1],[0,0,1]])
     probabilites = [0.2, 0.3, 0.5]
 
     fm = FunctionMapping(l, colors, weights, additives, Ax, Ay, probabilites)
 
 
     l2 = LFOSet(0.5)
-    weights = [[0.2, 0.5], [0.5], [0.21,0.2001,0.24],[0.23]]
-    additives = [[linear, swirl], [bubble], [linear, swirl, spherical], [linear]]
-    Ax = np.array([[1,0,l.alpha0],[1,1,0],[1,0,1],[1,l.alpha1,1]])
-    Ay = np.array([[-1,0,l.alpha2],[1,-1,0],[1,0,1],[1,l.alpha3,1]])
-    probabilites = [0.2, 0.3, 0.5]
-    fm2 = FunctionMapping(l, colors, weights, additives, Ax, Ay, probabilites)
 
-    @dataclass
-    class VH():
-        list_of_function_mappings: list
-        burn_steps: int
-        iterate_steps: int
-        N: int
+    colors2 = [c.R[0], c.R[2], c.R[1]]
+    weights = [[0.2, 0.5], [0.5], [0.0021,0.2001,0.24],[0.0023]]
+    additives = [[linear, bubble], [spherical], [swirl, linear, spherical], [bubble]]
+    Ax = np.array([[0,1,0],[1,1,0],[0,1,0],[0,1,0]])
+    Ay = np.array([[0,0,1],[0,0,1],[1,0,1],[0,0,1]])
+    probabilites = [0.4, 0.5, 0.15]
+    fm2 = FunctionMapping(l, colors2, weights, additives, Ax, Ay, probabilites)
 
-        def __post_init__(self):
-            self.total_N = self.N*len(self.list_of_function_mappings)
-
-        def run(self):
-            initial_coordinates  = self.burn()
-            result = self.iterate(initial_coordinates)
-            return result
-
-        def burn(self):
-            
-            initial_coordinates = np.random.uniform(-1,1, (self.total_N, 2))
-            # it is the first time the coordinates are called, attach a color
-            initial_coordinates = np.concatenate((initial_coordinates, 255 * np.ones((self.total_N, 3))), axis=1)
-    
-            for i in range(self.burn_steps):
-                for j, fm in enumerate(self.list_of_function_mappings):
-                    initial_coordinates[j*self.N:(j+1)*self.N,:] = fm.call(initial_coordinates[j*self.N:(j+1)*self.N,:])
-
-            return initial_coordinates
-
-        def iterate(self, initial_coordinates):
-                
-                result = np.zeros((self.total_N*self.iterate_steps, 5))
-
-                for i in range(self.iterate_steps):
-                    if i==0:
-                        result[:self.total_N,:] = initial_coordinates
-                    else:
-                        result[i*self.total_N:(i+1)*self.total_N,:] = result[(i-1)*self.total_N:(i)*self.total_N,:]
-
-                    for j, fm in enumerate(self.list_of_function_mappings):
-                        result[i*self.total_N:(i+1)*self.total_N] = fm.call(result[i*self.total_N:(i+1)*self.total_N])
-                       
-                return result
-
-        def to_image(self, result):
-
-            pass
-
-    vh = VH([fm, fm2],10,15, 2500)
+    vh = VH([fm, fm2],20,35, 25000)
 
     result = vh.run()
-    print(result)
+    out, bitmap = vh.to_image(result, 400)
+    import matplotlib.pyplot as plt
+
+    print(bitmap.max())
+    plt.imshow(out)
+    plt.show()
