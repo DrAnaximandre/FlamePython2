@@ -61,7 +61,7 @@ class VideoGenerator:
 
 
 if __name__ == "__main__":
-    0
+    
     video_generator = VideoGenerator(DemoImageHolder)
     video_generator.do_video_with_IH(fps=25, 
                                      duration=10, 
