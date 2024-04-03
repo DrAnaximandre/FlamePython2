@@ -1,4 +1,4 @@
-from Function import Function
+from FunctionMapping import FunctionMapping
 from LFOs.LFOSet import LFOSet
 from colors import Color
 import numpy as np
@@ -19,7 +19,7 @@ class DemoImageHolder(ImageHolder):
         Ay = np.array([[l.alpha2/10,l.alpha3/10,1],[0,l.alpha3/20,1],[1,l.alpha0/10,1],[-l.alpha2/10,0,1]])
         probabilites = np.array([0.1, 0.1, 0.1])
         
-        fm = Function(l, colors, weights, additives, Ax, Ay, probabilites, final=True)
+        fm = FunctionMapping(l, colors, weights, additives, Ax, Ay, probabilites, final=True)
 
         colors = [c.B[0], c.R[3], c.R[0]]
         weights = [[0.55], [0.5,-0.2], [0.5,0.1],[1, 0.2]]
@@ -28,7 +28,7 @@ class DemoImageHolder(ImageHolder):
         Ay = np.array([[l.alpha2/10,l.alpha3/10,1],[-1,l.alpha3/20,1],[1,l.alpha0/10,1],[-l.alpha2/10,0,1]])
         probabilites = np.array([0.1, 0.1, 0.1])
         
-        fm2 = Function(l, colors, weights, additives, Ax, Ay, probabilites, final=True)
+        fm2 = FunctionMapping(l, colors, weights, additives, Ax, Ay, probabilites, final=True)
 
         variation_params = ([fm, fm2], 15, 30, 15000)
         return Variation(*variation_params)

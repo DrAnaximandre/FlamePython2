@@ -9,7 +9,7 @@ To use this implementation, clone the repository and follow the instructions in 
 <p align="center"> <img src="images/serp-2.png"></p>
 
 
-### Generating an image
+## Generating an image
 
 To generate an image, use the `GenerateImages.py` script.
 It will generate the following image:
@@ -43,9 +43,32 @@ At the core of this function, a `Variation` object is created, taking as paramet
 
 
 
-### Generating a video
+## Generating a video
 
 To generate a video, use the `VideoGenerator.py` file, that contains the `VideoGenerator` object. That object takes an `ImageHolder` child class as argument.
+
+An example:
+
+```python
+video_generator = VideoGenerator(SierpinskiesWithLFOs)
+video_generator.do_video_with_IH(fps=25, 
+                                 duration=10, 
+                                 size=512, 
+                                 name="SierpinskiesWithLFOs", 
+                                 nb_jobs=-3,
+                                 output_format="gif")
+```
+
+This creates a video from the `VideoGenerator` object based on the `SierpinskiesWithLFOs`, that inherits from the abstract class `ImageHolder`. That video will have `25` fps, a duration of `10` seconds. It will generate 250 images from the `SierpinskiesWithLFOs` object, each with a different ratio. The images will have a  `512x512` pixels size. The video will be named `SierpinskiesWithLFOs.gif` and will be executed in parallel with the `nb_jobs` parallel executions argument.
+
+<p align="center"> <img src="images/SierpinskiesWithLFOs.gif"></p>
+
+
+### Adding an additive to the ImageHolder
+
+File `SWLFOsMA.py` includes an example with one more additive at the first function. 
+
+
 
 ### Next steps
 

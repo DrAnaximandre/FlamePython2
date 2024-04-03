@@ -1,4 +1,4 @@
-from Function import Function
+from FunctionMapping import FunctionMapping
 from LFOs.LFOSet import LFOSet
 from colors import Color
 import numpy as np
@@ -19,7 +19,7 @@ class Sierpinski(ImageHolder):
         Ay = np.array([[0,0,1],[1,0,1],[1,0,1],[0,0,1]])
         probabilites = np.array([1, 1, 1])
         
-        fm = Function(l, colors, weights, additives, Ax, Ay, probabilites, final=False)
+        fm = FunctionMapping(l, colors, weights, additives, Ax, Ay, probabilites, final=False)
 
         variation_params = ([fm], 15, 30, 15000)
         return Variation(*variation_params)
