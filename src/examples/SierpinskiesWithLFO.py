@@ -2,11 +2,11 @@ from Function import Function
 from LFOs.LFOSet import LFOSet
 from colors import Color
 import numpy as np
-from Additives import linear, bubble, spherical
+from Additives import linear
 from ImageHolder import ImageHolder
 from Variation import Variation
 
-class Sierpinskies(ImageHolder):
+class SierpinskiesWithLFO(ImageHolder):
     
     def create_variation(self):
         l = LFOSet(ratio=self.ratio)
@@ -31,3 +31,5 @@ class Sierpinskies(ImageHolder):
                       
         variation_params = ([fm], 15, 30, 150000)
         return Variation(*variation_params)
+
+

@@ -2,7 +2,7 @@ from Function import Function
 from LFOs.LFOSet import LFOSet
 from colors import Color
 import numpy as np
-from Additives import linear, bubble, spherical
+from Additives import linear
 from ImageHolder import ImageHolder
 from Variation import Variation
 
@@ -11,7 +11,7 @@ class Sierpinski(ImageHolder):
     def create_variation(self):
         l = LFOSet(ratio=self.ratio)
         c = Color()
-        colors = [c.B[0], c.B[3], c.RNP[2]]
+        colors = [c.R[0], c.R[3], c.R[2]]
     
         weights = [[0.5], [0.5], [0.5],[1]]
         additives = [[linear], [linear], [linear], [linear]]
