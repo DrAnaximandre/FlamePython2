@@ -1,150 +1,97 @@
 import numpy as np
-from Function import Function
-from utils import rotation
+from dataclasses import dataclass
+from PIL import Image
+from numba import njit
+
+@dataclass
+class Variation():
+    list_of_function_mappings: list
+    burn_steps: int
+    iterate_steps: int
+    N: int
+
+    def __post_init__(self):
+        self.total_N = self.N*len(self.list_of_function_mappings)
+
+    def run(self):
+        initial_coordinates  = self.burn()
+        
+        result = self.iterate(initial_coordinates)
+        return result
+
+    def burn(self):
+        
+        initial_coordinates = np.random.uniform(-1,1, (self.total_N, 2))
+        # it is the first time the coordinates are called, attach a color
+        initial_coordinates = np.concatenate((initial_coordinates, 255 * np.zeros((self.total_N, 3))), axis=1)
+
+        for _ in range(self.burn_steps):
+            for j, fm in enumerate(self.list_of_function_mappings):
+                initial_coordinates[j*self.N:(j+1)*self.N,:] = fm.call(initial_coordinates[j*self.N:(j+1)*self.N,:])
+
+        return initial_coordinates
+
+    def iterate(self, initial_coordinates):
+            
+            result = np.zeros((self.total_N*self.iterate_steps, 5))
+            for i in range(self.iterate_steps):
+                if i==0:
+                    result[:self.total_N,:] = initial_coordinates
+                else:
+                    result[i*self.total_N:(i+1)*self.total_N,:] = result[(i-1)*self.total_N:(i)*self.total_N,:]
+
+                for j, fm in enumerate(self.list_of_function_mappings):
+    
+                    idx_start = (i*self.total_N+j*self.N)
+                    idx_end = (i*self.total_N+(j+1)*self.N)
+                    result[idx_start: idx_end] =  fm.call(result[idx_start:idx_end])
+                    
+            return result
+
+    def to_image(self, result, size):
+
+        imgtemp = Image.new('RGB', (size, size), "black")
+        bitmap = np.array(imgtemp).astype(float)
+        intensity = np.zeros((size, size))
+
+        result_xy = (size * (result[:,:2] + 1) / 2)
+        result_xy = np.concatenate((result_xy, result[:,2:]), axis=1)
+        result_xy = result_xy.astype("i8")
+
+        conditions = np.zeros((result_xy.shape[0], 4), dtype='bool')
+        conditions[:, 0] = result_xy[:, 0] < size
+        conditions[:, 1] = result_xy[:, 0] > 0
+        conditions[:, 2] = result_xy[:, 1] < size
+        conditions[:, 3] = result_xy[:, 1] > 0
+
+        goods = np.where(np.all(conditions, 1))[0]
 
 
+        bitmap, intensity = self.renderImage(
+            result_xy, bitmap, intensity, goods)
 
-class Variation:
-    '''
-        A variation is a set of several Functions.
+        nmax = np.amax(intensity)
+        
+        intensity = np.power(np.log(intensity + 1) / np.log(nmax + 1), 1)
 
-        The basic life cycle of such an object is: init,
-        add some functions, then fixProba. The user should not
-        play with these objects, they are used in the Fractale class.
+        bitmap = np.uint8(bitmap * np.reshape(np.repeat(intensity,3), (size,size,3)))
 
-        The variation may have a final function that is applied after the
-        regular functions.
+        out = Image.fromarray(bitmap)
+        return(out, bitmap)
 
-        The variation can also have rotations that are applied after all the
-        functions.
 
-        The Variation has an vproba attribute: before the fixProba, it's
-        the weight of each function in the Variation. After the fix, it's
-        the cumulative probability to have each of the functions.
-    '''
+    @staticmethod
+    @njit(fastmath=True)
+    def renderImage(result, bitmap, intensity, goods, coef_forget=1):
+        ''' this renders the image
+            '''
+        cf1 = coef_forget + 1
+        result[:, 2:] = result[:, 2:] * coef_forget / cf1
+        for i in goods:
+            ad0 = result[i, 0]
+            ad1 = result[i, 1]
+            bitmap[ad0, ad1] /= cf1
+            bitmap[ad0, ad1] += result[i, 2:]
+            intensity[ad0, ad1] += 1
+        return bitmap, intensity
 
-    def __init__(self, N: int):
-        self.Nfunctions = 0  # the number of functions in the Variation
-        self.functions = []  # a list where the functions are stored
-        self.vproba = [0]  # a list of probabilities, see doc
-        self.cols = []  # a list of colors associated to each function
-        self.lockVariation = False  # a bool: can I still add functions?
-        self.rotation = []  # a list of rotations to be applied
-        self.final = False  # a bool: does the variation has a final function?
-        self.N = N  # the number of MC samples run by this Variation
-
-    def addFunction(self, ws, params, additives, proba, col):
-        """ adds a function where the parameters are all provided
-            - ws, params, additives are parameters that go directely
-                in a new Function object
-            - proba is a number, the weight of the added function.
-                should not be negative.
-            - col is the color of the function,
-                it is a np array of shape (3,), that should range from 0 to 255
-
-        """
-        if proba < 0:
-            raise ValueError("no negative weights allowed")
-
-        if not self.lockVariation:
-            self.Nfunctions += 1
-            self.cols.append(col)
-            self.vproba.append(proba)
-            self.functions.append(Function(ws, params, additives))
-        else:
-            raise ValueError(
-                "This variation is locked, I cannot add the function")
-
-    def fixProba(self):
-        """ Utility function: scales the weights to a cumsum between 0 and 1.
-        """
-        self.vproba = [p / np.sum(self.vproba) for p in self.vproba]
-        self.vproba = np.cumsum(self.vproba)
-        # as a result, the last value of vproba is 1
-        self.lockVariation = True
-
-    def addFinal(self, ws, params, additives):
-        """ adds a final function to the Variation.
-            - ws, params, additives are parameters that go directely
-                in a new Function object
-        """
-        if not self.lockVariation:
-            self.final = Function(ws, params, additives)
-        else:
-            raise ValueError(
-                "This variation is locked, I cannot add the final")
-
-    def addRotation(self, angle):
-        """ adds a rotation to the variation.
-           so far only 3 angles are supported : 180, 120 and 90.
-        """
-        if not self.lockVariation:
-            self.rotation.append(angle)
-        else:
-            raise ValueError(
-                "This variation is locked, I cannot add the rotation")
-
-    def runAllfunctions(self, coordinates, batchpointsC, random_tr=0.5):
-        """ Calls all the functions (including the final if it exists).
-
-            Parameters:
-
-            - coordinates: np.array of size Number of points x 3
-                it's a columns of ones and the coordinates of the points.
-            - batchpointsC: np.array of size Number of points x 3
-                it's the colors of the points.
-                it should scale between 0 and 255
-
-        """
-        Nloc = coordinates.shape[0]  # how many points in the batch
-        r = np.random.uniform(size=Nloc)  # each point is attributed a rand
-        resF = np.zeros(shape=(Nloc, 2))  # creation of the empty results
-        resC = np.zeros(shape=(Nloc, 3))
-
-        for i in range(len(self.vproba) - 1):  # for each regular function
-            # we select via a mask the points that are attributed a given
-            # function
-            mask1 = r > self.vproba[i]
-            mask2 = r < self.vproba[i + 1]
-            sel = np.where((mask1) & (mask2))[0]
-            # then we call the function on the slice. The whole process could
-            # be parallelized since we work on slices, but it's quite quick
-            resF[sel, :] = self.functions[i].call(coordinates[sel, :])
-            # then we blend the color of the points with the color of the
-            # function by averaging them
-            resC[sel, :] = batchpointsC[sel, :] + self.cols[i]
-
-        if self.final:
-            # if the variation has a final function, it is applied on
-            # every point of resF.
-            # note that the final function has no color thus it does not modify
-            # resC.
-            r = np.random.uniform(size=Nloc) 
-            bob = np.where(r>random_tr)[0]
-
-            resF[bob] = self.final.call(resF[bob])
-        return(resF, resC)
-
-    def runAllrotations(self, resF):
-        Nloc = resF.shape[0]
-        r = np.random.uniform(size=Nloc)
-        for i in range(len(self.rotation)):
-            if self.rotation[i] == 120:
-                a120 = np.pi * 2 / 3
-                resF = rotation(3, a120, resF, r)
-
-            elif self.rotation[i] == 180:
-                a180 = np.pi
-                resF = rotation(2, a180, resF, r)
-
-            elif self.rotation[i] == 90:
-                a90 = np.pi / 2
-                resF = rotation(4, a90, resF, r)
-
-            elif type(self.rotation[i]) == tuple:
-                ncustom = self.rotation[i][0]
-                acustom = float(self.rotation[i][1])
-                coef = [float(b) for b in self.rotation[i][2]]
-                
-                resF = rotation(ncustom, acustom, resF, r, coef)
-        return (resF)

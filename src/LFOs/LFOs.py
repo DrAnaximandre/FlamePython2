@@ -4,18 +4,6 @@ from scipy import signal
 
 
 
-def LFO(t:float):
-    """
-    Low frequency oscillator
-    Args:
-        t: time
-
-    Returns:
-
-    """
-    return np.sin(t * 2 * np.pi)
-
-
 @dataclass
 class sLFO(object):
 
@@ -25,6 +13,19 @@ class sLFO(object):
     max: float = 1
     def __call__(self, t):
         return np.sin(self.phase + t * self.speed) * (self.max - self.min) / 2 + (self.max + self.min) / 2
+
+
+class cLFO(object):
+    """cosine LFO"""
+
+    def __init__(self, speed = 2 * np.pi, phase = 0, min = 0, max = 1):
+        self.speed = speed
+        self.phase = phase
+        self.min = min
+        self.max = max
+
+    def __call__(self, t):
+        return np.cos(self.phase + t * self.speed) * (self.max - self.min) / 2 + (self.max + self.min) / 2
 
 @dataclass
 class tLFO(object):

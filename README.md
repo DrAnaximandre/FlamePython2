@@ -6,85 +6,47 @@ The Fractal Flame algorithm is a two-dimensional Iterated Function System (IFS) 
 
 To use this implementation, clone the repository and follow the instructions in the README.md file within the repository. 
 
-<p align="center"> <img src="images/mess.png"></p>
+<p align="center"> <img src="images/serp-2.png"></p>
 
+
+### Generating an image
+
+To generate an image, use the `GenerateImages.py` script.
+It will generate the following image:
+
+<p align="center"> <img src="images/serp-6.png"></p>
+
+The code creates an `ImageHolder` object of type `Sierpinskies`.
+
+
+Parameters are: 
+- `i`: the index of the image
+- `n_im`:  the total number of images - useful for video
+- `size`:  the size in pixels of the image to save
+- `name`: the name of the folder and basename for the image
+
+### Creating your own ImageHolder
+
+The best way is to start from a simple existing `ImageHolder`, such as `Sierpinski` that creates a red-white Sierpinski triangle. One just needs to implement the `create_variation` function.
+
+At the core of this function, a `Variation` object is created, taking as parameters:
+- a `list` of `Function` objects
+- an int `burn_steps` or number of times that the iterative functions are called but the results are not stored. 10-15 is usually a good default. a lower number can mean more blurry images.
+- an int `iterate_steps` that is the number of iterations that are stored, a higher number means more computing time but brighter images / more converged images.
+- an int `N` that is the number of points on which the functions are applied  `iterate_steps` times. A higher number means brighter images / more converged images. This parameter has the most impact on generating time. 15000 is a good default value for experimenting, that can be gradually increased.
+
+| Image | Description |
+|-------|-------------|
+| ![15k](images/serpl15k-50.png) | Image with N=15k points |
+| ![150k](images/serpl150k-50.png) | Image with N=150k points |
+| ![1.5M](images/serpl1500k-50.png) | Image with N=1.5M points |
 
 
 
 ### Generating a video
 
-To generate a video, run the following command:
+To generate a video, use the `VideoGenerator.py` file, that contains the `VideoGenerator` object. That object takes an `ImageHolder` child class as argument.
 
-```bash
-python src/helpers.py 
-```
+### Next steps
 
-After some computation time, a video will be saved locally.
-
-
-
-### UserGuide Example
-
-```
-import class_fractale.py
-burn = 20
-niter = 50
-zoom = 1
-N = 10000
-
-F1 = Fractale(burn, niter, zoom)
-
-```
-Declaration of a fractale object. It will run "burn" times without saving the points, then run "niter" times saving the points. 
-The zoom parameter is just for convenience. These are not parameters you should play with as a start.
-
-```
-a1 = np.array([0, 1, 0, 0, 0, 1])
-a2 = np.array([1, 1, 0, 0, 0, 1])
-a3 = np.array([0, 1, 0, 1, 0, 1])
-```
-These vectors will be used further in the Functions. You can modify these values but as a rule of thumb you should keep the values between 1.2 and -1.2.
-
-
-```
-v1 = Variation()
-v1.addFunction([.5], a1, [linear], .2, [255, 0, 0])
-v1.addFunction([.5], a2, [linear], .2, [0, 255, 0])
-v1.addFunction([.5], a3, [linear], .2, [0, 0, 255])
-
-```
-
-Here we declare a Variation with 3 Functions. For instance, with the values of `a`s this will give a Serpinski's triangle.
-
-Each Function has a number of scales (here the first parameter that still needs to be in a list). It also has a vector (one of the `a`s).
-Then it has some additives (here it's `linear`). You can add additives (see `utils.py` for the ones that are implemented) but more than 3 additives per Function gives messy images. 
-Then one can see that the Functions also have the same probability to appear (0.2, but the probs are normalised to sum to one).
-Finally, each Function has a different color (the last list of 3 values). 
-
-
-We then add the variation to the Fractale object, with N points.
-```
-F1.addVariation(v1, N)
-
-```
-
-We can then build the fractale and run it!
-```
-F1.build()
-F1.runAll()
-   
-```
-This is pretty fast. The coslty part is to go from the coordinate space to the image space:
-```
-print("Generating the image")
-out = F1.toImage(600, optional_kernel_filtering=False)
-   
-```
-
-Saving is pretty fast:
-```
-out.save("serp.png")
-```
-
-<p align="center"> <img src="images/Serp.png"></p>
-
+- Document the `Function` parameters
