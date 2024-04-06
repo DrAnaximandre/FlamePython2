@@ -64,9 +64,16 @@ This creates a video from the `VideoGenerator` object based on the `Sierpinskies
 <p align="center"> <img src="images/SierpinskiesWithLFOs.gif"></p>
 
 
-### Adding an additive to the ImageHolder
+### Adding additives to the ImageHolder
 
-File `SWLFOsMA.py` includes an example with one more additive at the first function. 
+
+
+
+### Adding additives and functions to the ImageHolder
+
+The file `SWLFOsMA.py` includes an example with more additive and more functions. 
+
+<p align="center"> <img src="images/SWLFOsMA3.gif"></p>
 
 
 

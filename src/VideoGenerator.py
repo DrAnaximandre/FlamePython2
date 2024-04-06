@@ -7,6 +7,7 @@ from joblib import Parallel, delayed
 from examples.Demo import DemoImageHolder
 from examples.SierpinskiesWithLFOs import SierpinskiesWithLFOs
 from examples.SWLFOsMA import SWLFOsMA
+from examples.PixeF import PixeF
 
 class VideoGenerator:
     """
@@ -74,13 +75,11 @@ class VideoGenerator:
 if __name__ == "__main__":
     
     # video_generator = VideoGenerator(SierpinskiesWithLFOs) 
-    video_generator = VideoGenerator(SWLFOsMA)
+    # video_generator = VideoGenerator(SWLFOsMA)
 
-
-
-    video_generator.do_video_with_IH(fps=12, 
+    video_generator.do_video_with_IH(fps=30, 
                                      duration=20, 
-                                     size=400, 
-                                     name="SWLFOsMA", 
+                                     size=512, 
+                                     name="SWLFOsMA3", 
                                      nb_jobs=-3,
                                      output_format="gif")
