@@ -80,3 +80,8 @@ The file `SWLFOsMA.py` includes an example with more additive and more functions
 ### Next steps
 
 - Document the `Function` parameters
+
+
+### Note
+
+You need `ffmpeg` to be installed if you want `.gif` outputs.
