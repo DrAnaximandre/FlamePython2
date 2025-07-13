@@ -9,6 +9,7 @@ class Variation():
     burn_steps: int
     iterate_steps: int
     N: int
+    exponent_brightness: float = 1.0
 
     def __post_init__(self):
         self.total_N = self.N*len(self.list_of_function_mappings)
@@ -87,7 +88,7 @@ class Variation():
 
         nmax = np.amax(intensity)
         
-        intensity = np.power(np.log(intensity + 1) / np.log(nmax + 1), 0.725)
+        intensity = np.power(np.log(intensity + 1) / np.log(nmax + 1), self.exponent_brightness)
 
         bitmap = np.uint8(bitmap * np.reshape(np.repeat(intensity,3), (size,size,3)))
 
