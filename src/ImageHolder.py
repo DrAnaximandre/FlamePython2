@@ -48,3 +48,4 @@ class ImageHolder(ABC):
         out, _ = self.variation.to_image(result, self.size)
         out.save(f"{self.folder_name}{self.name}-{self.i}.png")
 
+        return out

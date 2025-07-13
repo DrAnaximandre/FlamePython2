@@ -1,6 +1,6 @@
 from examples.Demo import DemoImageHolder
 import os
-from moviepy.editor import *
+from moviepy import *
 import glob
 from natsort import natsorted
 from joblib import Parallel, delayed
@@ -8,6 +8,7 @@ from examples.Demo import DemoImageHolder
 from examples.SierpinskiesWithLFOs import SierpinskiesWithLFOs
 from examples.SWLFOsMA import SWLFOsMA
 from examples.PixeF import PixeF
+from examples.reboot import Reboot
 
 class VideoGenerator:
     """
@@ -56,13 +57,13 @@ class VideoGenerator:
 
         # create the video
         clips = [
-            ImageClip(m).set_duration(1 / fps) for m in file_list_sorted
+            ImageClip(m).with_duration(1 / fps) for m in file_list_sorted
         ]
         concat_clip = concatenate_videoclips(clips, method="compose")
         
         if output_format == "gif":
             concat_clip.write_gif(
-                f"{base_dir}/{name}.gif", fps=fps, program="ffmpeg"
+                f"{base_dir}/{name}.gif", fps=fps
             )
         elif output_format == "mp4":
             concat_clip.write_videofile(
@@ -75,11 +76,11 @@ class VideoGenerator:
 if __name__ == "__main__":
     
     # video_generator = VideoGenerator(SierpinskiesWithLFOs) 
-    # video_generator = VideoGenerator(SWLFOsMA)
+    video_generator = VideoGenerator(Reboot)
 
-    video_generator.do_video_with_IH(fps=30, 
-                                     duration=20, 
-                                     size=512, 
-                                     name="SWLFOsMA3", 
+    video_generator.do_video_with_IH(fps=24, 
+                                     duration=5, 
+                                     size=800, 
+                                     name="artwork8", 
                                      nb_jobs=-3,
-                                     output_format="gif")
+                                     output_format="mp4")

@@ -25,7 +25,7 @@ class LFOSet():
         self.beta2 = tLFO(max=1,min=0, width=0.8, speed=2*np.pi,phase=2)(self.ratio)
         self.beta3 = tLFO(max=1,min=0, width=0.8, speed=2*np.pi,phase=3)(self.ratio)
         self.beta4 = tLFO(max=1,min=0, width=0.8, speed=2*np.pi,phase=4)(self.ratio)
-        self.beta5 = tLFO(max=1,min=0, width=0.8, speed=2*np.pi,phase=5)(self.ratio)
+        self.beta5 = tLFO(max=1,min=0, width=0.28, speed=2*np.pi,phase=5)(self.ratio)
         self.beta6 = tLFO(max=1,min=0, width=0.8, speed=2*np.pi,phase=6)(self.ratio)
         self.beta7 = tLFO(max=1,min=0, width=0.8, speed=2*np.pi,phase=7)(self.ratio)
         self.beta8 = tLFO(max=1,min=0, width=0.8, speed=2*np.pi,phase=8)(self.ratio)

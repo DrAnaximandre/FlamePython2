@@ -22,6 +22,11 @@ cg4 = [20, 165, 20]
 cg5 = [40, 200, 30]
 cg6 = [60, 255, 5]
 
+# purple, to bone
+cp1 = [73, 61, 158]
+cp2 = [178, 165, 255]
+cp3 = [218, 210, 255]
+cp4 = [255, 242, 175]
 
 # some reds and purples
 c_1 = np.array([128, 0, 128])
@@ -32,6 +37,7 @@ c_5 = np.array([75, 0, 130])
 c_6 = np.array([0, 128, 128])
 
 
+
 @dataclass
 class Color:
     
@@ -40,3 +46,4 @@ class Color:
     B = np.array([cb1, cb2, cb3, cb4, cb5, cb6])
     RNP = np.array([c_1, c_2, c_3, c_4, c_5, c_6])
     C = np.concatenate((R, G, B, RNP), axis=0)
+    CP = np.array([cp1, cp2, cp3, cp4])
