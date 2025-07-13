@@ -1,4 +1,4 @@
-from Function import Function
+from FunctionMapping import FunctionMapping
 from LFOs.LFOSet import LFOSet
 from colors import Color
 import numpy as np
@@ -20,7 +20,7 @@ class Sierpinskies(ImageHolder):
         Ay = np.array([[0,0,-1],[1, 0,-1],[1,0,1],[0,0,1]])
         probabilites = np.array([1, 1, 2])
         
-        fm = Function(l, 
+        fm = FunctionMapping(l, 
                       colors, 
                       weights, 
                       additives, 

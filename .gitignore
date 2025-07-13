@@ -3,6 +3,7 @@
 *.gif
 *.mp4
 *.jpg
+*.csv
 
 *.lprof
 __pycache__/

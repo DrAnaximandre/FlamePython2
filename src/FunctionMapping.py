@@ -3,7 +3,7 @@ from LFOs.LFOSet import LFOSet
 from dataclasses import dataclass
 
 @dataclass
-class Function():
+class FunctionMapping():
 
     l: LFOSet = None
     colors: list = None

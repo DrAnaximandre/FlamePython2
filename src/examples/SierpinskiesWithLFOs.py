@@ -6,7 +6,7 @@ from Additives import linear
 from ImageHolder import ImageHolder
 from Variation import Variation
 
-class SierpinskiesWithLFO(ImageHolder):
+class SierpinskiesWithLFOs(ImageHolder):
     
     def create_variation(self):
         l = LFOSet(ratio=self.ratio)
@@ -14,11 +14,11 @@ class SierpinskiesWithLFO(ImageHolder):
 
         colors = [c.B[0], c.B[5], c.R[1]]
     
-        weights = [[0.65], [0.75], [0.25],[1]]
+        weights = [[0.65+l.alpha1/10], [0.75+l.alpha0/10], [0.25+l.beta0/10],[1]]
         additives = [[linear], [linear], [linear], [linear]]
-        Ax = np.array([[-1,-1,l.gamma1],[0,1,0],[1,1,0],[0,1,0]])
-        Ay = np.array([[0,0,-1],[1, 0,-1],[1,0,1],[0,0,1]])
-        probabilites = np.array([1, 1, 2])
+        Ax = np.array([[-1,-1,l.gamma1/2],[0,1,0],[1,1,0],[0,1,0]])
+        Ay = np.array([[0,0,-1],[1, 0,-1-l.gamma2/3],[1,0,1],[0,0,1]])
+        probabilites = np.array([1, 1, l.gamma0+1])
         
         fm = FunctionMapping(l, 
                       colors, 
