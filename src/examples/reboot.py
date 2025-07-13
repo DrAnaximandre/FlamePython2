@@ -14,12 +14,12 @@ class Reboot(ImageHolder):
 
         colors = [c.CP[3], c.CP[2], c.CP[1], c.CP[0]]
      
-        weights = [[0.65,0.5],[0.575,0.85],[0.5,0.3+l.beta5],[0.5],[0.495, l.beta3/10]]
+        weights = [[0.65,0.5],[0.575,0.85],[0.5,0.3+l.beta5],[0.5],[0.495, l.beta3/10,l.alpha0/15]]
         additives = [[bubble,  linear],
                     [linear, spherical],
                     [linear, bubble],
                     [linear],
-                    [linear, spherical],
+                    [linear, spherical,bubble],
                     ]
         Ax = np.array([[l.alpha0/2,1,0.05],
                        [0.51,1,0],
