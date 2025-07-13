@@ -2,7 +2,7 @@ from FunctionMapping import FunctionMapping
 from LFOs.LFOSet import LFOSet
 from colors import Color
 import numpy as np
-from Additives import linear, bubble, spherical
+from Additives import linear, bubble, spherical, expinj
 from ImageHolder import ImageHolder
 from Variation import Variation
 
@@ -12,35 +12,16 @@ class PixeF(ImageHolder):
         l = LFOSet(ratio=self.ratio)
         c = Color()
 
-        colorsA = [c.R[0], c.B[5], c.R[0], c.B[3]]
-        colorsB = [c.B[2], c.G[5], c.B[1], c.G[2]]
+        colorsA = [c.R[0], c.B[5], c.R[0], c.B[3],c.R[5] ]
+        colorsB = [c.B[2], c.R[5], c.B[1], c.G[2],c.B[4]]
 
-        colors = l.alpha6 * np.array(colorsA) + ((1-l.alpha6) * np.array(colorsB))
-       
+        colors = [c.R[0], c.R[3], c.R[2]]
     
-        weights = [[0.65+l.alpha1/10,0.1], 
-                   [0.75+l.alpha0/10,0.2+l.beta3/10],
-                   [0.5],
-                   [0.25+l.beta0/10],
-                   [0.4,0.7]]
-        additives = [[linear, bubble],
-                     [linear, spherical],
-                     [linear],
-                     [linear],
-                     [linear, bubble]]
-        Ax = np.array([
-            [-1,-1,0.5*l.gamma1/2*l.alpha3],
-            [0,1,0],
-            [1,0.5+0.5*l.beta2,0],
-            [1,1,0],
-            [1,0,0.05]])
-        Ay = np.array([
-            [0,0+l.alpha5,-1],
-            [1, 0,-1-l.gamma2/3],
-            [1,0,1+l.alpha3*l.beta1],
-            [1,0,1],
-            [0.4,-l.alpha4,1]])
-        probabilites = np.array([1, 1, l.gamma0+1,-l.beta5])
+        weights = [[0.5], [0.5], [0.5],[1]]
+        additives = [[linear], [linear], [linear], [bubble]]
+        Ax = np.array([[l.alpha0,1,0],[1,1,0],[0,1,0],[l.beta2,1,l.beta7]])
+        Ay = np.array([[0,0,1],[1,l.alpha3,1],[1,0,1],[-l.beta3,l.beta4*1.1,1]])
+        probabilites = np.array([1, 1, 1])
         
         fm = FunctionMapping(l, 
                       colors, 
@@ -49,9 +30,9 @@ class PixeF(ImageHolder):
                       Ax, 
                       Ay, 
                       probabilites, 
-                      final=False)
+                      final=True)
                       
-        variation_params = ([fm], 50, 20, 100000)
+        variation_params = ([fm], 10, 30, 20000)
         return Variation(*variation_params)
 
 
