@@ -38,9 +38,6 @@ class FunctionMapping():
             # function call
             result[selection, :] = self.apply_function(i, coordinates[selection, :])
         
-        # final call
-        if self.final:
-            result = self.apply_final(result)
 
         return result
  
@@ -80,9 +77,11 @@ class FunctionMapping():
         points = self.build_points(result)
         x_loc = np.dot(points, self.Ax[-1,:])
         y_loc = np.dot(points, self.Ay[-1,:])
+        result_loc = np.zeros((points.shape[0], 5))
+        result_loc[:,2:] = result[:,2:]
 
         for j in range(len(self.weights[-1])):
-            result[:,:2] = self.weights[-1][j] * self.additives[-1][j](x_loc, y_loc)
+            result_loc[:,:2] += self.weights[-1][j] * self.additives[-1][j](x_loc, y_loc)
         
-        return result
+        return result_loc
 

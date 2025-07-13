@@ -17,6 +17,9 @@ class Variation():
         initial_coordinates  = self.burn()
         
         result = self.iterate(initial_coordinates)
+
+        result = self.call_final(result)
+
         return result
 
     def burn(self):
@@ -28,7 +31,7 @@ class Variation():
         for _ in range(self.burn_steps):
             for j, fm in enumerate(self.list_of_function_mappings):
                 initial_coordinates[j*self.N:(j+1)*self.N,:] = fm.call(initial_coordinates[j*self.N:(j+1)*self.N,:])
-
+          
         return initial_coordinates
 
     def iterate(self, initial_coordinates):
@@ -45,8 +48,20 @@ class Variation():
                     idx_start = (i*self.total_N+j*self.N)
                     idx_end = (i*self.total_N+(j+1)*self.N)
                     result[idx_start: idx_end] =  fm.call(result[idx_start:idx_end])
-                    
+               
             return result
+
+    def call_final(self, result):
+    
+        for i in range(self.iterate_steps):
+            for j, fm in enumerate(self.list_of_function_mappings):
+                if fm.final:
+                    idx_start = (i*self.total_N+j*self.N)
+                    idx_end = (i*self.total_N+(j+1)*self.N)
+                    result[idx_start: idx_end] =  fm.apply_final(result[idx_start:idx_end])
+            
+        return result
+
 
     def to_image(self, result, size):
 
@@ -72,7 +87,7 @@ class Variation():
 
         nmax = np.amax(intensity)
         
-        intensity = np.power(np.log(intensity + 1) / np.log(nmax + 1), 1)
+        intensity = np.power(np.log(intensity + 1) / np.log(nmax + 1), 0.725)
 
         bitmap = np.uint8(bitmap * np.reshape(np.repeat(intensity,3), (size,size,3)))
 
